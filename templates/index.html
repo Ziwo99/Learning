@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Accueil — DA Interview Prep{% endblock %}
+{% block content %}
+<div class="home-header">
+  <h1>Data Analyst Interview Prep</h1>
+  <p>Entraîne-toi sur SQL, Pandas et les questions théoriques pour décrocher ton prochain poste.</p>
+</div>
+
+<div class="cards">
+  {% set cat_info = {
+    'sql': {'label': 'SQL', 'icon': '🗄️', 'desc': 'SELECT, JOINs, window functions, CTEs, sous-requêtes et optimisation.'},
+    'pandas': {'label': 'Pandas / Python', 'icon': '🐼', 'desc': 'groupby, merge, pivot, rolling, apply, transform et plus.'},
+    'theory': {'label': 'Théorie', 'icon': '📚', 'desc': 'Modélisation, stats, A/B testing, KPIs et communication de données.'}
+  } %}
+  {% for cat, info in cat_info.items() %}
+  {% set s = stats.get(cat, {}) %}
+  <a href="/questions/{{ cat }}" class="card">
+    <div class="card-icon">{{ info.icon }}</div>
+    <h2>{{ info.label }}</h2>
+    <p class="card-desc">{{ info.desc }}</p>
+    <div class="card-stats">
+      <span class="badge-count">{{ s.total }} questions</span>
+      {% if s.attempted > 0 %}
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" style="width: {{ s.pct }}%"></div>
+      </div>
+      <span class="pct-label">{{ s.passed }}/{{ s.total }} réussies ({{ s.pct }}%)</span>
+      {% else %}
+      <span class="not-started">Pas encore commencé</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% set total = stats.values() | sum(attribute='total') %}
+{% set total_passed = stats.values() | sum(attribute='passed') %}
+{% if total > 0 %}
+<div class="global-stats">
+  <strong>Progression globale :</strong>
+  {{ total_passed }} / {{ total }} questions réussies
+  ({{ (total_passed / total * 100) | round | int }}%)
+  — <a href="/stats">Voir les stats détaillées</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+
+# Local DBs (régénérables / données perso)
+data/*.db
+
+# Env & secrets
+.env
+.env.*
+
+# IDE / outils
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Cursor / Claude local
+.claude/settings.local.json

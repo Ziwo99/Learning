@@ -1,0 +1,816 @@
+[
+  {
+    "id": "sql_001",
+    "title": "Commandes complétées triées par date",
+    "difficulty": "easy",
+    "topic_tags": [
+      "SELECT",
+      "WHERE",
+      "ORDER BY"
+    ],
+    "description": "Sélectionne l'`id`, `customer_id`, `product_id`, `quantity` et `order_date` de toutes les commandes dont le statut est `'completed'`, triées par `order_date` du plus récent au plus ancien.",
+    "setup_note": "Tables disponibles : customers, products, orders, employees, monthly_sales",
+    "starter_code": "SELECT \nFROM orders\nWHERE \nORDER BY ",
+    "solution_code": "SELECT id, customer_id, product_id, quantity, order_date\nFROM orders\nWHERE status = 'completed'\nORDER BY order_date DESC;",
+    "explanation": "WHERE filtre les lignes selon une condition. ORDER BY ... DESC trie du plus grand au plus petit (ici les dates les plus récentes en premier).",
+    "ordered": true
+  },
+  {
+    "id": "sql_002",
+    "title": "Nombre de commandes par statut",
+    "difficulty": "easy",
+    "topic_tags": [
+      "COUNT",
+      "GROUP BY",
+      "ORDER BY"
+    ],
+    "description": "Compte le nombre de commandes par statut. Retourne `status` et `nb_commandes`, trié par `nb_commandes` décroissant.",
+    "setup_note": "Table : orders (id, customer_id, product_id, quantity, order_date, status)",
+    "starter_code": "SELECT status, COUNT(*) AS nb_commandes\nFROM orders\nGROUP BY \nORDER BY ",
+    "solution_code": "SELECT status, COUNT(*) AS nb_commandes\nFROM orders\nGROUP BY status\nORDER BY nb_commandes DESC;",
+    "explanation": "COUNT(*) compte toutes les lignes. GROUP BY status regroupe les lignes par valeur de statut. ORDER BY nb_commandes DESC trie le résultat.",
+    "ordered": true
+  },
+  {
+    "id": "sql_003",
+    "title": "Revenu total par client",
+    "difficulty": "easy",
+    "topic_tags": [
+      "JOIN",
+      "SUM",
+      "GROUP BY",
+      "ORDER BY"
+    ],
+    "description": "Pour chaque client, calcule le revenu total de toutes ses commandes (revenu = `quantity × unit_price`). Retourne `customer_name` et `total_revenue` (arrondi à 2 décimales), trié par `total_revenue` décroissant.",
+    "setup_note": "Tables : customers (id, name, ...), orders (id, customer_id, product_id, quantity, ...), products (id, name, unit_price, ...)",
+    "starter_code": "SELECT c.name AS customer_name,\n       ROUND(SUM( ), 2) AS total_revenue\nFROM orders o\nJOIN customers c ON \nJOIN products p ON \nGROUP BY \nORDER BY total_revenue DESC;",
+    "solution_code": "SELECT c.name AS customer_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN products p ON o.product_id = p.id\nGROUP BY c.id, c.name\nORDER BY total_revenue DESC;",
+    "explanation": "Deux JOINs permettent de relier orders aux customers et aux products. SUM(quantity * unit_price) calcule le revenu total. GROUP BY c.id, c.name regroupe par client.",
+    "ordered": true
+  },
+  {
+    "id": "sql_004",
+    "title": "Top 5 clients par revenu (commandes complétées)",
+    "difficulty": "easy",
+    "topic_tags": [
+      "JOIN",
+      "SUM",
+      "GROUP BY",
+      "WHERE",
+      "LIMIT"
+    ],
+    "description": "Trouve les 5 clients avec le plus grand revenu total, en ne comptant que les commandes `'completed'`. Retourne `customer_name` et `total_revenue` (arrondi à 2 décimales).",
+    "setup_note": "Tables : customers, orders, products",
+    "starter_code": "SELECT c.name AS customer_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN products p ON o.product_id = p.id\nWHERE \nGROUP BY c.id, c.name\nORDER BY total_revenue DESC\nLIMIT ;",
+    "solution_code": "SELECT c.name AS customer_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN products p ON o.product_id = p.id\nWHERE o.status = 'completed'\nGROUP BY c.id, c.name\nORDER BY total_revenue DESC\nLIMIT 5;",
+    "explanation": "WHERE o.status = 'completed' filtre avant l'agrégation. LIMIT 5 ne garde que les 5 premières lignes après le tri.",
+    "ordered": true
+  },
+  {
+    "id": "sql_005",
+    "title": "Clients sans commande (anti-join)",
+    "difficulty": "easy",
+    "topic_tags": [
+      "LEFT JOIN",
+      "IS NULL",
+      "anti-join"
+    ],
+    "description": "Trouve tous les clients qui n'ont jamais passé de commande. Retourne `id` et `name`.",
+    "setup_note": "Tables : customers (id, name, ...), orders (customer_id, ...)",
+    "starter_code": "SELECT c.id, c.name\nFROM customers c\nLEFT JOIN orders o ON \nWHERE ;",
+    "solution_code": "SELECT c.id, c.name\nFROM customers c\nLEFT JOIN orders o ON c.id = o.customer_id\nWHERE o.id IS NULL;",
+    "explanation": "Le LEFT JOIN garde tous les clients même sans commande. Quand un client n'a pas de commande, o.id vaut NULL. WHERE o.id IS NULL filtre uniquement ces clients sans commande.",
+    "ordered": false
+  },
+  {
+    "id": "sql_006",
+    "title": "Produits dont le revenu est supérieur à la moyenne",
+    "difficulty": "medium",
+    "topic_tags": [
+      "sous-requête",
+      "GROUP BY",
+      "HAVING",
+      "AVG"
+    ],
+    "description": "Trouve les produits dont le revenu total (toutes commandes confondues) est supérieur au revenu moyen de tous les produits. Retourne `product_name` et `total_revenue` (arrondi à 2 décimales), trié par `total_revenue` décroissant.",
+    "setup_note": "Tables : products (id, name, unit_price), orders (product_id, quantity)",
+    "starter_code": "SELECT p.name AS product_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.id, p.name\nHAVING total_revenue > (\n    -- sous-requête : revenu moyen par produit\n)\nORDER BY total_revenue DESC;",
+    "solution_code": "SELECT p.name AS product_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.id, p.name\nHAVING total_revenue > (\n    SELECT AVG(prod_rev) FROM (\n        SELECT SUM(o2.quantity * p2.unit_price) AS prod_rev\n        FROM orders o2\n        JOIN products p2 ON o2.product_id = p2.id\n        GROUP BY p2.id\n    )\n)\nORDER BY total_revenue DESC;",
+    "explanation": "HAVING filtre après l'agrégation. La sous-requête imbriquée calcule d'abord le revenu par produit, puis AVG() en fait la moyenne. Cette valeur est utilisée comme seuil dans HAVING.",
+    "ordered": true
+  },
+  {
+    "id": "sql_007",
+    "title": "Croissance mensuelle du chiffre d'affaires (MoM %)",
+    "difficulty": "medium",
+    "topic_tags": [
+      "LAG",
+      "window functions",
+      "ROUND",
+      "CASE WHEN"
+    ],
+    "description": "Pour chaque mois de la table `monthly_sales`, calcule la croissance par rapport au mois précédent en pourcentage. Retourne `year`, `month`, `revenue` et `mom_growth_pct` (arrondi à 2 décimales, NULL pour le premier mois). Trie par year, month.",
+    "setup_note": "Table : monthly_sales (year, month, revenue, units_sold)",
+    "starter_code": "SELECT\n    year,\n    month,\n    revenue,\n    ROUND(\n        (revenue - LAG(revenue) OVER (ORDER BY year, month))\n        / LAG(revenue) OVER (ORDER BY year, month) * 100\n    , 2) AS mom_growth_pct\nFROM monthly_sales\nORDER BY year, month;",
+    "solution_code": "SELECT\n    year,\n    month,\n    revenue,\n    ROUND(\n        (revenue - LAG(revenue) OVER (ORDER BY year, month))\n        / LAG(revenue) OVER (ORDER BY year, month) * 100\n    , 2) AS mom_growth_pct\nFROM monthly_sales\nORDER BY year, month;",
+    "explanation": "LAG(revenue) OVER (ORDER BY year, month) récupère la valeur du mois précédent. La formule (current - previous) / previous * 100 donne le % de croissance. Pour le premier mois, LAG() retourne NULL donc le résultat est NULL.",
+    "ordered": true
+  },
+  {
+    "id": "sql_008",
+    "title": "Classement des produits par revenu dans leur catégorie",
+    "difficulty": "medium",
+    "topic_tags": [
+      "RANK",
+      "PARTITION BY",
+      "window functions"
+    ],
+    "description": "Classe chaque produit par son revenu total au sein de sa catégorie. Retourne `category`, `product_name`, `total_revenue` (arrondi à 2 décimales) et `rank_in_category`. Trie par category, rank_in_category.",
+    "setup_note": "Tables : products (id, name, category, unit_price), orders (product_id, quantity)",
+    "starter_code": "SELECT\n    p.category,\n    p.name AS product_name,\n    ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue,\n    RANK() OVER (PARTITION BY  ORDER BY  DESC) AS rank_in_category\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.id, p.name, p.category\nORDER BY p.category, rank_in_category;",
+    "solution_code": "SELECT\n    p.category,\n    p.name AS product_name,\n    ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue,\n    RANK() OVER (PARTITION BY p.category ORDER BY SUM(o.quantity * p.unit_price) DESC) AS rank_in_category\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.id, p.name, p.category\nORDER BY p.category, rank_in_category;",
+    "explanation": "RANK() OVER (PARTITION BY category ORDER BY ...) réinitialise le classement pour chaque catégorie. RANK() attribue le même rang aux ex-æquo et saute des rangs ensuite (contrairement à DENSE_RANK).",
+    "ordered": true
+  },
+  {
+    "id": "sql_009",
+    "title": "Catégoriser les commandes par montant avec CASE WHEN",
+    "difficulty": "easy",
+    "topic_tags": [
+      "CASE WHEN",
+      "JOIN"
+    ],
+    "description": "Pour chaque commande, calcule le montant (`quantity × unit_price`) et ajoute une colonne `segment` : `'Petit'` si montant < 50, `'Moyen'` si entre 50 et 500, `'Grand'` sinon. Retourne `id`, `order_date`, `montant` (arrondi à 2 décimales) et `segment`. Trie par montant décroissant.",
+    "setup_note": "Tables : orders (id, order_date, quantity, product_id), products (unit_price)",
+    "starter_code": "SELECT\n    o.id,\n    o.order_date,\n    ROUND(o.quantity * p.unit_price, 2) AS montant,\n    CASE\n        WHEN  THEN 'Petit'\n        WHEN  THEN 'Moyen'\n        ELSE 'Grand'\n    END AS segment\nFROM orders o\nJOIN products p ON o.product_id = p.id\nORDER BY montant DESC;",
+    "solution_code": "SELECT\n    o.id,\n    o.order_date,\n    ROUND(o.quantity * p.unit_price, 2) AS montant,\n    CASE\n        WHEN o.quantity * p.unit_price < 50 THEN 'Petit'\n        WHEN o.quantity * p.unit_price <= 500 THEN 'Moyen'\n        ELSE 'Grand'\n    END AS segment\nFROM orders o\nJOIN products p ON o.product_id = p.id\nORDER BY montant DESC;",
+    "explanation": "CASE WHEN est l'équivalent SQL d'un if/elif/else. Les conditions sont évaluées dans l'ordre : dès qu'une condition est vraie, la valeur correspondante est retournée.",
+    "ordered": true
+  },
+  {
+    "id": "sql_010",
+    "title": "Date du premier achat de chaque client",
+    "difficulty": "medium",
+    "topic_tags": [
+      "MIN",
+      "GROUP BY",
+      "JOIN",
+      "sous-requête"
+    ],
+    "description": "Pour chaque client ayant au moins une commande, trouve la date de sa première commande. Retourne `customer_name`, `first_order_date` et `product_name` (du premier achat). Trie par `first_order_date`.",
+    "setup_note": "Tables : customers, orders, products",
+    "starter_code": "-- Utilise une CTE ou sous-requête pour trouver la première commande par client\nWITH first_orders AS (\n    SELECT customer_id, MIN(order_date) AS first_order_date\n    FROM orders\n    GROUP BY customer_id\n)\nSELECT c.name AS customer_name, fo.first_order_date, p.name AS product_name\nFROM first_orders fo\nJOIN orders o ON  AND \nJOIN customers c ON \nJOIN products p ON \nORDER BY fo.first_order_date;",
+    "solution_code": "WITH first_orders AS (\n    SELECT customer_id, MIN(order_date) AS first_order_date\n    FROM orders\n    GROUP BY customer_id\n)\nSELECT c.name AS customer_name, fo.first_order_date, p.name AS product_name\nFROM first_orders fo\nJOIN orders o ON fo.customer_id = o.customer_id AND fo.first_order_date = o.order_date\nJOIN customers c ON fo.customer_id = c.id\nJOIN products p ON o.product_id = p.id\nORDER BY fo.first_order_date;",
+    "explanation": "La CTE first_orders calcule la date minimale par client. On la rejoint ensuite avec orders sur deux conditions (customer_id ET date) pour retrouver la commande exacte du premier achat.",
+    "ordered": true
+  },
+  {
+    "id": "sql_011",
+    "title": "Hiérarchie employés avec CTE et self-join",
+    "difficulty": "medium",
+    "topic_tags": [
+      "CTE",
+      "WITH",
+      "self-join",
+      "LEFT JOIN"
+    ],
+    "description": "Liste tous les employés avec le nom de leur manager (si applicable). Retourne `employee_name`, `department`, `salary` et `manager_name` (NULL si pas de manager). Trie par department, employee_name.",
+    "setup_note": "Table : employees (id, name, department, manager_id, salary). manager_id référence id dans la même table.",
+    "starter_code": "SELECT\n    e.name AS employee_name,\n    e.department,\n    e.salary,\n    m.name AS manager_name\nFROM employees e\nLEFT JOIN employees m ON \nORDER BY e.department, e.name;",
+    "solution_code": "SELECT\n    e.name AS employee_name,\n    e.department,\n    e.salary,\n    m.name AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id\nORDER BY e.department, e.name;",
+    "explanation": "Un self-join joint la table employees avec elle-même : 'e' représente l'employé, 'm' représente le manager. LEFT JOIN conserve les employés sans manager (manager_id IS NULL), qui auront manager_name = NULL.",
+    "ordered": true
+  },
+  {
+    "id": "sql_012",
+    "title": "UNION : villes des clients gold et argent",
+    "difficulty": "medium",
+    "topic_tags": [
+      "UNION",
+      "UNION ALL",
+      "set operations"
+    ],
+    "description": "Récupère la liste des villes distinctes des clients `'gold'` et la liste des villes distinctes des clients `'silver'`, puis combine-les avec UNION (sans doublons). Ajoute une colonne `tier` pour indiquer la provenance. Trie par ville.",
+    "setup_note": "Table : customers (id, name, city, tier)",
+    "starter_code": "SELECT city, 'gold' AS tier FROM customers WHERE tier = 'gold'\nUNION\nSELECT city, 'silver' AS tier FROM customers WHERE tier = 'silver'\nORDER BY city;",
+    "solution_code": "SELECT DISTINCT city, 'gold' AS tier FROM customers WHERE tier = 'gold'\nUNION\nSELECT DISTINCT city, 'silver' AS tier FROM customers WHERE tier = 'silver'\nORDER BY city;",
+    "explanation": "UNION combine deux résultats en supprimant les doublons (comme un ensemble mathématique). UNION ALL conserverait tous les doublons. Chaque SELECT doit avoir le même nombre et type de colonnes.",
+    "ordered": true
+  },
+  {
+    "id": "sql_013",
+    "title": "COALESCE : manager ou 'Aucun'",
+    "difficulty": "easy",
+    "topic_tags": [
+      "COALESCE",
+      "IFNULL",
+      "NULL handling",
+      "self-join"
+    ],
+    "description": "Liste tous les employés avec le nom de leur manager. Quand un employé n'a pas de manager, affiche `'Aucun'` à la place de NULL. Retourne `employee_name`, `salary` et `manager_name`. Trie par employee_name.",
+    "setup_note": "Table : employees (id, name, salary, manager_id)",
+    "starter_code": "SELECT\n    e.name AS employee_name,\n    e.salary,\n    COALESCE(m.name, 'Aucun') AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id\nORDER BY e.name;",
+    "solution_code": "SELECT\n    e.name AS employee_name,\n    e.salary,\n    COALESCE(m.name, 'Aucun') AS manager_name\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id\nORDER BY e.name;",
+    "explanation": "COALESCE(valeur, fallback) retourne la première valeur non-NULL. Ici, si m.name est NULL (pas de manager), il retourne 'Aucun'. Équivalent à IFNULL(m.name, 'Aucun') en SQLite.",
+    "ordered": true
+  },
+  {
+    "id": "sql_014",
+    "title": "Moyenne mobile sur 3 mois glissants",
+    "difficulty": "medium",
+    "topic_tags": [
+      "window functions",
+      "AVG OVER",
+      "ROWS BETWEEN"
+    ],
+    "description": "Pour chaque mois de `monthly_sales`, calcule la moyenne du chiffre d'affaires sur les 3 derniers mois (mois actuel + 2 précédents). Retourne `year`, `month`, `revenue` et `rolling_avg_3m` (arrondi à 2 décimales). Trie par year, month.",
+    "setup_note": "Table : monthly_sales (year, month, revenue, units_sold)",
+    "starter_code": "SELECT\n    year,\n    month,\n    revenue,\n    ROUND(AVG(revenue) OVER (\n        ORDER BY year, month\n        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n    ), 2) AS rolling_avg_3m\nFROM monthly_sales\nORDER BY year, month;",
+    "solution_code": "SELECT\n    year,\n    month,\n    revenue,\n    ROUND(AVG(revenue) OVER (\n        ORDER BY year, month\n        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n    ), 2) AS rolling_avg_3m\nFROM monthly_sales\nORDER BY year, month;",
+    "explanation": "ROWS BETWEEN 2 PRECEDING AND CURRENT ROW définit une fenêtre glissante de 3 lignes (2 précédentes + ligne courante). AVG() calcule la moyenne sur cette fenêtre. Pour les 2 premiers mois, la fenêtre est réduite.",
+    "ordered": true
+  },
+  {
+    "id": "sql_015",
+    "title": "Dédoublonnage : dernière commande par client",
+    "difficulty": "medium",
+    "topic_tags": [
+      "ROW_NUMBER",
+      "CTE",
+      "window functions",
+      "dédoublonnage"
+    ],
+    "description": "Pour chaque client, ne garde que sa commande la plus récente. Si plusieurs commandes ont la même date, garde celle avec l'`id` le plus grand. Retourne `customer_id`, `id` (order id), `order_date`, `status`. Trie par customer_id.",
+    "setup_note": "Table : orders",
+    "starter_code": "WITH ranked AS (\n    SELECT *,\n           ROW_NUMBER() OVER (PARTITION BY  ORDER BY  DESC,  DESC) AS rn\n    FROM orders\n)\nSELECT customer_id, id, order_date, status\nFROM ranked\nWHERE rn = 1\nORDER BY customer_id;",
+    "solution_code": "WITH ranked AS (\n    SELECT *,\n           ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC, id DESC) AS rn\n    FROM orders\n)\nSELECT customer_id, id, order_date, status\nFROM ranked\nWHERE rn = 1\nORDER BY customer_id;",
+    "explanation": "ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY ...) numérote les commandes de chaque client de 1 à N dans l'ordre souhaité. Filtrer sur rn = 1 ne garde que la première ligne de chaque groupe = la dernière commande.",
+    "ordered": true
+  },
+  {
+    "id": "sql_016",
+    "title": "Pivot : revenu par catégorie en colonnes",
+    "difficulty": "hard",
+    "topic_tags": [
+      "CASE WHEN",
+      "pivot",
+      "agrégation conditionnelle"
+    ],
+    "description": "Crée un tableau croisé (pivot) avec le revenu total par catégorie de produit, en colonnes. Retourne une seule ligne avec `electronics_revenue`, `clothing_revenue`, `food_revenue` (arrondis à 2 décimales).",
+    "setup_note": "Tables : orders (quantity, product_id), products (category, unit_price)",
+    "starter_code": "SELECT\n    ROUND(SUM(CASE WHEN p.category = 'Electronics' THEN o.quantity * p.unit_price ELSE 0 END), 2) AS electronics_revenue,\n    ROUND(SUM(CASE WHEN p.category = '' THEN  ELSE 0 END), 2) AS clothing_revenue,\n    ROUND(SUM(CASE WHEN p.category = '' THEN  ELSE 0 END), 2) AS food_revenue\nFROM orders o\nJOIN products p ON o.product_id = p.id;",
+    "solution_code": "SELECT\n    ROUND(SUM(CASE WHEN p.category = 'Electronics' THEN o.quantity * p.unit_price ELSE 0 END), 2) AS electronics_revenue,\n    ROUND(SUM(CASE WHEN p.category = 'Clothing' THEN o.quantity * p.unit_price ELSE 0 END), 2) AS clothing_revenue,\n    ROUND(SUM(CASE WHEN p.category = 'Food' THEN o.quantity * p.unit_price ELSE 0 END), 2) AS food_revenue\nFROM orders o\nJOIN products p ON o.product_id = p.id;",
+    "explanation": "Le pivot en SQL s'obtient avec SUM(CASE WHEN categorie = 'X' THEN valeur ELSE 0 END). Chaque catégorie devient une colonne. C'est la technique standard car SQL n'a pas de PIVOT natif (sauf SQL Server).",
+    "ordered": false
+  },
+  {
+    "id": "sql_017",
+    "title": "Quartiles de salaire avec NTILE",
+    "difficulty": "medium",
+    "topic_tags": [
+      "NTILE",
+      "window functions",
+      "CASE WHEN"
+    ],
+    "description": "Classe chaque employé dans un quartile de salaire (1 = plus bas, 4 = plus haut) avec NTILE(4). Retourne `name`, `salary`, `quartile` et `label` (`'Q1 - Bas'`, `'Q2 - Moyen-bas'`, `'Q3 - Moyen-haut'`, `'Q4 - Haut'`). Trie par salary.",
+    "setup_note": "Table : employees (id, name, department, salary)",
+    "starter_code": "SELECT\n    name,\n    salary,\n    NTILE(4) OVER (ORDER BY salary) AS quartile,\n    CASE NTILE(4) OVER (ORDER BY salary)\n        WHEN 1 THEN 'Q1 - Bas'\n        WHEN 2 THEN 'Q2 - Moyen-bas'\n        WHEN 3 THEN 'Q3 - Moyen-haut'\n        WHEN 4 THEN 'Q4 - Haut'\n    END AS label\nFROM employees\nORDER BY salary;",
+    "solution_code": "SELECT\n    name,\n    salary,\n    NTILE(4) OVER (ORDER BY salary) AS quartile,\n    CASE NTILE(4) OVER (ORDER BY salary)\n        WHEN 1 THEN 'Q1 - Bas'\n        WHEN 2 THEN 'Q2 - Moyen-bas'\n        WHEN 3 THEN 'Q3 - Moyen-haut'\n        WHEN 4 THEN 'Q4 - Haut'\n    END AS label\nFROM employees\nORDER BY salary;",
+    "explanation": "NTILE(N) divise les lignes en N groupes de taille égale (ou presque). NTILE(4) crée des quartiles. On peut combiner NTILE avec CASE WHEN pour créer des labels descriptifs.",
+    "ordered": true
+  },
+  {
+    "id": "sql_018",
+    "title": "Première et dernière commande par client",
+    "difficulty": "medium",
+    "topic_tags": [
+      "FIRST_VALUE",
+      "LAST_VALUE",
+      "window functions",
+      "PARTITION BY"
+    ],
+    "description": "Pour chaque commande, affiche la date de la première et de la dernière commande du client correspondant. Retourne `customer_id`, `order_date`, `first_order_date` et `last_order_date`. Trie par customer_id, order_date.",
+    "setup_note": "Table : orders",
+    "starter_code": "SELECT\n    customer_id,\n    order_date,\n    FIRST_VALUE(order_date) OVER (PARTITION BY customer_id ORDER BY order_date\n        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_order_date,\n    LAST_VALUE(order_date) OVER (PARTITION BY customer_id ORDER BY order_date\n        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_order_date\nFROM orders\nORDER BY customer_id, order_date;",
+    "solution_code": "SELECT\n    customer_id,\n    order_date,\n    FIRST_VALUE(order_date) OVER (PARTITION BY customer_id ORDER BY order_date\n        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_order_date,\n    LAST_VALUE(order_date) OVER (PARTITION BY customer_id ORDER BY order_date\n        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_order_date\nFROM orders\nORDER BY customer_id, order_date;",
+    "explanation": "FIRST_VALUE et LAST_VALUE sont des fonctions de fenêtrage. ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING est crucial pour LAST_VALUE : sans cela, la fenêtre par défaut ne va que jusqu'à la ligne courante, ce qui donne des résultats incorrects.",
+    "ordered": true
+  },
+  {
+    "id": "sql_019",
+    "title": "Chiffre d'affaires cumulé (running total)",
+    "difficulty": "medium",
+    "topic_tags": [
+      "SUM OVER",
+      "running total",
+      "window functions"
+    ],
+    "description": "Calcule le chiffre d'affaires cumulé mois par mois sur toute la période. Retourne `year`, `month`, `revenue` et `cumulative_revenue` (arrondi à 2 décimales). Trie par year, month.",
+    "setup_note": "Table : monthly_sales (year, month, revenue)",
+    "starter_code": "SELECT\n    year,\n    month,\n    revenue,\n    ROUND(SUM(revenue) OVER (ORDER BY year, month), 2) AS cumulative_revenue\nFROM monthly_sales\nORDER BY year, month;",
+    "solution_code": "SELECT\n    year,\n    month,\n    revenue,\n    ROUND(SUM(revenue) OVER (ORDER BY year, month), 2) AS cumulative_revenue\nFROM monthly_sales\nORDER BY year, month;",
+    "explanation": "SUM() OVER (ORDER BY ...) sans ROWS BETWEEN utilise par défaut ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW, ce qui donne un cumul progressif. C'est la façon standard de faire un running total.",
+    "ordered": true
+  },
+  {
+    "id": "sql_020",
+    "title": "Taux de chaque statut de commande",
+    "difficulty": "medium",
+    "topic_tags": [
+      "ROUND",
+      "COUNT",
+      "sous-requête scalaire",
+      "calcul de taux"
+    ],
+    "description": "Calcule le nombre et le pourcentage de commandes pour chaque statut. Retourne `status`, `nb_commandes` et `pourcentage` (arrondi à 1 décimale). Trie par nb_commandes décroissant.",
+    "setup_note": "Table : orders",
+    "starter_code": "SELECT\n    status,\n    COUNT(*) AS nb_commandes,\n    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM orders), 1) AS pourcentage\nFROM orders\nGROUP BY status\nORDER BY nb_commandes DESC;",
+    "solution_code": "SELECT\n    status,\n    COUNT(*) AS nb_commandes,\n    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM orders), 1) AS pourcentage\nFROM orders\nGROUP BY status\nORDER BY nb_commandes DESC;",
+    "explanation": "La sous-requête scalaire (SELECT COUNT(*) FROM orders) retourne le total et est évaluée une fois. * 100.0 (avec .0) force la division en flottant au lieu d'entier. ROUND(..., 1) arrondit à 1 décimale.",
+    "ordered": true
+  },
+  {
+    "id": "sql_021",
+    "title": "Produits jamais commandés",
+    "difficulty": "easy",
+    "topic_tags": [
+      "LEFT JOIN",
+      "IS NULL",
+      "anti-join"
+    ],
+    "description": "Trouve tous les produits qui n'apparaissent dans aucune commande. Retourne `id`, `name` et `category`.",
+    "setup_note": "Tables : products (id, name, category), orders (product_id)",
+    "starter_code": "SELECT p.id, p.name, p.category\nFROM products p\nLEFT JOIN orders o ON \nWHERE \nORDER BY p.id;",
+    "solution_code": "SELECT p.id, p.name, p.category\nFROM products p\nLEFT JOIN orders o ON p.id = o.product_id\nWHERE o.id IS NULL\nORDER BY p.id;",
+    "explanation": "Même pattern que l'anti-join pour les clients : LEFT JOIN + WHERE o.id IS NULL. Si un produit n'a pas de commande, toutes les colonnes de orders seront NULL dans le résultat du LEFT JOIN.",
+    "ordered": false
+  },
+  {
+    "id": "sql_022",
+    "title": "Clients avec revenu supérieur à la moyenne globale",
+    "difficulty": "hard",
+    "topic_tags": [
+      "sous-requête corrélée",
+      "HAVING",
+      "AVG",
+      "JOIN"
+    ],
+    "description": "Trouve les clients dont le revenu total (commandes complétées) est supérieur à la moyenne des revenus de tous les clients. Retourne `customer_name`, `total_revenue` (arrondi à 2 décimales). Trie par total_revenue décroissant.",
+    "setup_note": "Tables : customers, orders, products",
+    "starter_code": "SELECT c.name AS customer_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN products p ON o.product_id = p.id\nWHERE o.status = 'completed'\nGROUP BY c.id, c.name\nHAVING total_revenue > (\n    -- Moyenne des revenus clients\n)\nORDER BY total_revenue DESC;",
+    "solution_code": "SELECT c.name AS customer_name,\n       ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN products p ON o.product_id = p.id\nWHERE o.status = 'completed'\nGROUP BY c.id, c.name\nHAVING total_revenue > (\n    SELECT AVG(rev) FROM (\n        SELECT SUM(o2.quantity * p2.unit_price) AS rev\n        FROM orders o2\n        JOIN products p2 ON o2.product_id = p2.id\n        WHERE o2.status = 'completed'\n        GROUP BY o2.customer_id\n    )\n)\nORDER BY total_revenue DESC;",
+    "explanation": "La sous-requête dans HAVING calcule la moyenne des revenus par client. HAVING (pas WHERE) est nécessaire car on filtre sur une valeur agrégée (SUM). La sous-requête imbriquée calcule d'abord les revenus par client, puis AVG() en fait la moyenne.",
+    "ordered": true
+  },
+  {
+    "id": "sql_023",
+    "title": "Revenus mensuels par année avec totaux annuels",
+    "difficulty": "hard",
+    "topic_tags": [
+      "GROUP BY ROLLUP",
+      "CASE WHEN",
+      "agrégation avancée"
+    ],
+    "description": "Affiche pour chaque année le revenu total et le nombre d'unités vendues, ainsi que les totaux par trimestre. Retourne `year`, `quarter` (Q1/Q2/Q3/Q4), `total_revenue` (arrondi à 2 décimales) et `total_units`. Trie par year, quarter.",
+    "setup_note": "Table : monthly_sales (year, month, revenue, units_sold)",
+    "starter_code": "SELECT\n    year,\n    CASE\n        WHEN month BETWEEN 1 AND 3 THEN 'Q1'\n        WHEN month BETWEEN 4 AND 6 THEN 'Q2'\n        WHEN month BETWEEN 7 AND 9 THEN 'Q3'\n        ELSE 'Q4'\n    END AS quarter,\n    ROUND(SUM(revenue), 2) AS total_revenue,\n    SUM(units_sold) AS total_units\nFROM monthly_sales\nGROUP BY year, quarter\nORDER BY year, quarter;",
+    "solution_code": "SELECT\n    year,\n    CASE\n        WHEN month BETWEEN 1 AND 3 THEN 'Q1'\n        WHEN month BETWEEN 4 AND 6 THEN 'Q2'\n        WHEN month BETWEEN 7 AND 9 THEN 'Q3'\n        ELSE 'Q4'\n    END AS quarter,\n    ROUND(SUM(revenue), 2) AS total_revenue,\n    SUM(units_sold) AS total_units\nFROM monthly_sales\nGROUP BY year, quarter\nORDER BY year, quarter;",
+    "explanation": "CASE WHEN sur month permet de créer la colonne quarter à la volée. On peut ensuite GROUP BY sur cette expression calculée. C'est une technique utile pour regrouper des données temporelles.",
+    "ordered": true
+  },
+  {
+    "id": "sql_024",
+    "title": "Nombre de clients distincts par ville",
+    "difficulty": "easy",
+    "topic_tags": [
+      "COUNT DISTINCT",
+      "GROUP BY",
+      "ORDER BY"
+    ],
+    "description": "Compte le nombre de clients distincts par ville. Retourne `city` et `nb_clients`, trié par `nb_clients` décroissant, puis `city` alphabétiquement.",
+    "setup_note": "Table : customers (id, name, city, tier)",
+    "starter_code": "SELECT city, COUNT(*) AS nb_clients\nFROM customers\nGROUP BY \nORDER BY nb_clients DESC, city;",
+    "solution_code": "SELECT city, COUNT(*) AS nb_clients\nFROM customers\nGROUP BY city\nORDER BY nb_clients DESC, city;",
+    "explanation": "GROUP BY city regroupe les clients par ville. COUNT(*) compte le nombre de lignes dans chaque groupe. ORDER BY avec deux colonnes : tri principal par nb_clients décroissant, puis alphabétique pour les ex-æquo.",
+    "ordered": true
+  },
+  {
+    "id": "sql_025",
+    "title": "Revenu moyen par commande et par catégorie",
+    "difficulty": "medium",
+    "topic_tags": [
+      "AVG",
+      "GROUP BY",
+      "JOIN",
+      "ROUND"
+    ],
+    "description": "Calcule le revenu moyen par commande pour chaque catégorie de produit (toutes commandes confondues). Retourne `category`, `nb_commandes`, `avg_order_revenue` (arrondi à 2 décimales) et `total_revenue` (arrondi à 2 décimales). Trie par avg_order_revenue décroissant.",
+    "setup_note": "Tables : orders, products",
+    "starter_code": "SELECT\n    p.category,\n    COUNT(o.id) AS nb_commandes,\n    ROUND(AVG(o.quantity * p.unit_price), 2) AS avg_order_revenue,\n    ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY \nORDER BY avg_order_revenue DESC;",
+    "solution_code": "SELECT\n    p.category,\n    COUNT(o.id) AS nb_commandes,\n    ROUND(AVG(o.quantity * p.unit_price), 2) AS avg_order_revenue,\n    ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.category\nORDER BY avg_order_revenue DESC;",
+    "explanation": "AVG() calcule la moyenne d'une expression par groupe. Ici, AVG(quantity * unit_price) calcule la moyenne du montant par commande pour chaque catégorie, différent de SUM()/COUNT() qui donnerait le même résultat mais sépare les calculs.",
+    "ordered": true
+  },
+  {
+    "id": "sql_026",
+    "title": "DENSE_RANK vs RANK : différence sur les ex-aequo",
+    "difficulty": "medium",
+    "topic_tags": [
+      "window functions",
+      "DENSE_RANK",
+      "RANK"
+    ],
+    "description": "Affichez le salaire de chaque employé avec son rang (RANK) et son rang dense (DENSE_RANK) par ordre décroissant de salaire. Incluez les colonnes : name, salary, rank_sal, dense_rank_sal.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  name,\n  salary,\n  RANK()       OVER (ORDER BY salary DESC) AS rank_sal,\n  DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank_sal\nFROM employees\nORDER BY salary DESC",
+    "explanation": "RANK saute des numéros après un ex-aequo (1,1,3…), DENSE_RANK ne saute pas (1,1,2…). Utile pour comprendre le rang réel dans un classement.",
+    "ordered": true
+  },
+  {
+    "id": "sql_027",
+    "title": "PERCENT_RANK : position percentile des salaires",
+    "difficulty": "medium",
+    "topic_tags": [
+      "window functions",
+      "PERCENT_RANK"
+    ],
+    "description": "Pour chaque employé, calculez son PERCENT_RANK de salaire (arrondi à 2 décimales). Colonnes : name, salary, pct_rank. Trié par salary DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  name,\n  salary,\n  ROUND(PERCENT_RANK() OVER (ORDER BY salary), 2) AS pct_rank\nFROM employees\nORDER BY salary DESC",
+    "explanation": "PERCENT_RANK retourne (rang - 1) / (total - 1). Le plus haut salaire a PERCENT_RANK = 1.0, le plus bas = 0.0.",
+    "ordered": true
+  },
+  {
+    "id": "sql_028",
+    "title": "EXISTS : clients ayant commandé un produit 'Electronics'",
+    "difficulty": "medium",
+    "topic_tags": [
+      "EXISTS",
+      "sous-requête corrélée"
+    ],
+    "description": "Listez les clients (name) qui ont passé au moins une commande contenant un produit de la catégorie 'Electronics'. Utilisez EXISTS. Triez par name.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT DISTINCT c.name\nFROM customers c\nWHERE EXISTS (\n  SELECT 1\n  FROM orders o\n  JOIN products p ON o.product_id = p.id\n  WHERE o.customer_id = c.id\n    AND p.category = 'Electronics'\n)\nORDER BY c.name",
+    "explanation": "EXISTS retourne TRUE dès qu'au moins une ligne satisfait la sous-requête corrélée, sans ramener toutes les lignes — plus efficace que IN sur de grands ensembles.",
+    "ordered": true
+  },
+  {
+    "id": "sql_029",
+    "title": "NOT EXISTS : clients n'ayant jamais commandé 'Food'",
+    "difficulty": "medium",
+    "topic_tags": [
+      "NOT EXISTS",
+      "sous-requête corrélée"
+    ],
+    "description": "Listez les clients (name) qui n'ont jamais commandé un produit de la catégorie 'Food'. Triez par name.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT c.name\nFROM customers c\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM orders o\n  JOIN products p ON o.product_id = p.id\n  WHERE o.customer_id = c.id\n    AND p.category = 'Food'\n)\nORDER BY c.name",
+    "explanation": "NOT EXISTS est l'anti-jointure via sous-requête corrélée. Alternative à LEFT JOIN ... IS NULL, souvent plus lisible.",
+    "ordered": true
+  },
+  {
+    "id": "sql_030",
+    "title": "CTEs multiples : top produit par catégorie",
+    "difficulty": "hard",
+    "topic_tags": [
+      "CTE",
+      "window functions",
+      "RANK"
+    ],
+    "description": "Trouvez, pour chaque catégorie de produit, le produit ayant généré le plus de revenu total (quantity * unit_price de la table orders). Colonnes : category, product_name, total_revenue. Si ex-aequo, gardez le premier alphabétiquement.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "WITH product_revenue AS (\n  SELECT\n    p.category,\n    p.name AS product_name,\n    SUM(o.quantity * o.unit_price) AS total_revenue\n  FROM orders o\n  JOIN products p ON o.product_id = p.id\n  GROUP BY p.category, p.name\n),\nranked AS (\n  SELECT *,\n    RANK() OVER (PARTITION BY category ORDER BY total_revenue DESC, product_name ASC) AS rk\n  FROM product_revenue\n)\nSELECT category, product_name, total_revenue\nFROM ranked\nWHERE rk = 1\nORDER BY category",
+    "explanation": "Deux CTEs chaînées : la première calcule le revenu par produit/catégorie, la seconde range les produits au sein de chaque catégorie. On filtre ensuite rk = 1.",
+    "ordered": true
+  },
+  {
+    "id": "sql_031",
+    "title": "Fonctions texte : extraire prénom et nom de famille",
+    "difficulty": "easy",
+    "topic_tags": [
+      "string functions",
+      "SUBSTR",
+      "INSTR"
+    ],
+    "description": "La table customers contient une colonne name (ex : 'Alice Martin'). Extrayez le prénom (first_name) et le nom de famille (last_name). Triez par last_name.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  SUBSTR(name, 1, INSTR(name, ' ') - 1)           AS first_name,\n  SUBSTR(name, INSTR(name, ' ') + 1)               AS last_name\nFROM customers\nORDER BY last_name",
+    "explanation": "INSTR(name, ' ') retourne la position de l'espace. SUBSTR extrait la partie avant (prénom) et après (nom) cet espace.",
+    "ordered": true
+  },
+  {
+    "id": "sql_032",
+    "title": "strftime : commandes de 2023 par mois",
+    "difficulty": "easy",
+    "topic_tags": [
+      "dates",
+      "strftime",
+      "GROUP BY"
+    ],
+    "description": "Comptez le nombre de commandes par mois pour l'année 2023. Colonnes : month (format 'YYYY-MM'), order_count. Triez par month.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  strftime('%Y-%m', order_date) AS month,\n  COUNT(*) AS order_count\nFROM orders\nWHERE strftime('%Y', order_date) = '2023'\nGROUP BY month\nORDER BY month",
+    "explanation": "strftime est la fonction SQLite pour formater les dates. La clause WHERE filtre sur l'année, le GROUP BY agrège par mois.",
+    "ordered": true
+  },
+  {
+    "id": "sql_033",
+    "title": "Clients actifs en 2022 ET en 2023",
+    "difficulty": "hard",
+    "topic_tags": [
+      "INTERSECT",
+      "dates",
+      "sous-requête"
+    ],
+    "description": "Listez les clients (name) ayant passé au moins une commande en 2022 ET au moins une commande en 2023. Triez par name.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT c.name\nFROM customers c\nWHERE c.id IN (\n  SELECT customer_id FROM orders WHERE strftime('%Y', order_date) = '2022'\n)\nAND c.id IN (\n  SELECT customer_id FROM orders WHERE strftime('%Y', order_date) = '2023'\n)\nORDER BY c.name",
+    "explanation": "Deux sous-requêtes IN connectées par AND garantissent que le client apparaît dans les deux années. Alternativement, INTERSECT sur deux SELECT de customer_id donne le même résultat.",
+    "ordered": true
+  },
+  {
+    "id": "sql_034",
+    "title": "HAVING avec plusieurs conditions",
+    "difficulty": "medium",
+    "topic_tags": [
+      "HAVING",
+      "GROUP BY",
+      "filtre agrégat"
+    ],
+    "description": "Trouvez les clients ayant passé au moins 3 commandes ET un revenu total (quantity * unit_price) supérieur à 500€. Colonnes : customer_name, order_count, total_revenue. Triez par total_revenue DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  c.name AS customer_name,\n  COUNT(o.id) AS order_count,\n  SUM(o.quantity * o.unit_price) AS total_revenue\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nGROUP BY c.id, c.name\nHAVING order_count >= 3\n  AND total_revenue > 500\nORDER BY total_revenue DESC",
+    "explanation": "HAVING filtre après l'agrégation, contrairement à WHERE. On peut y utiliser des alias de colonnes calculées dans SQLite (comportement non standard mais supporté).",
+    "ordered": true
+  },
+  {
+    "id": "sql_035",
+    "title": "julianday : délai entre première et dernière commande",
+    "difficulty": "medium",
+    "topic_tags": [
+      "dates",
+      "julianday",
+      "MIN",
+      "MAX"
+    ],
+    "description": "Pour chaque client ayant au moins 2 commandes, calculez le nombre de jours entre sa première et sa dernière commande. Colonnes : customer_name, first_order, last_order, days_span. Triez par days_span DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  c.name AS customer_name,\n  MIN(o.order_date) AS first_order,\n  MAX(o.order_date) AS last_order,\n  CAST(julianday(MAX(o.order_date)) - julianday(MIN(o.order_date)) AS INTEGER) AS days_span\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nGROUP BY c.id, c.name\nHAVING COUNT(o.id) >= 2\nORDER BY days_span DESC",
+    "explanation": "julianday() convertit une date en nombre de jours juliens. La soustraction donne la durée en jours entre deux dates.",
+    "ordered": true
+  },
+  {
+    "id": "sql_036",
+    "title": "Médiane des salaires via ROW_NUMBER",
+    "difficulty": "hard",
+    "topic_tags": [
+      "window functions",
+      "ROW_NUMBER",
+      "médiane"
+    ],
+    "description": "Calculez la médiane des salaires des employés. Retournez une seule valeur : median_salary.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "WITH ranked AS (\n  SELECT salary,\n    ROW_NUMBER() OVER (ORDER BY salary) AS rn,\n    COUNT(*) OVER () AS total\n  FROM employees\n)\nSELECT AVG(salary) AS median_salary\nFROM ranked\nWHERE rn IN (\n  (total + 1) / 2,\n  (total + 2) / 2\n)",
+    "explanation": "SQLite n'a pas de MEDIAN(). On simule : pour n impair, la médiane est la valeur centrale ; pour n pair, c'est la moyenne des deux valeurs centrales. La formule (n+1)/2 et (n+2)/2 (division entière) capture les deux cas.",
+    "ordered": false
+  },
+  {
+    "id": "sql_037",
+    "title": "Produits commandés plus de 3 fois",
+    "difficulty": "easy",
+    "topic_tags": [
+      "GROUP BY",
+      "HAVING",
+      "COUNT"
+    ],
+    "description": "Listez les produits (name) qui apparaissent dans plus de 3 commandes distinctes. Colonnes : product_name, times_ordered. Triez par times_ordered DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  p.name AS product_name,\n  COUNT(o.id) AS times_ordered\nFROM products p\nJOIN orders o ON p.id = o.product_id\nGROUP BY p.id, p.name\nHAVING times_ordered > 3\nORDER BY times_ordered DESC",
+    "explanation": "HAVING COUNT > 3 filtre après agrégation. On joint products et orders pour récupérer le nom du produit.",
+    "ordered": true
+  },
+  {
+    "id": "sql_038",
+    "title": "Quantité moyenne commandée par produit",
+    "difficulty": "easy",
+    "topic_tags": [
+      "AVG",
+      "GROUP BY",
+      "ROUND"
+    ],
+    "description": "Calculez la quantité moyenne commandée pour chaque produit (arrondie à 1 décimale). Colonnes : product_name, avg_quantity. Triez par avg_quantity DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  p.name AS product_name,\n  ROUND(AVG(o.quantity), 1) AS avg_quantity\nFROM products p\nJOIN orders o ON p.id = o.product_id\nGROUP BY p.id, p.name\nORDER BY avg_quantity DESC",
+    "explanation": "AVG(quantity) calcule la moyenne par produit. ROUND(..., 1) arrondit à une décimale.",
+    "ordered": true
+  },
+  {
+    "id": "sql_039",
+    "title": "CUME_DIST : distribution cumulative des salaires",
+    "difficulty": "medium",
+    "topic_tags": [
+      "window functions",
+      "CUME_DIST"
+    ],
+    "description": "Pour chaque employé, affichez son nom, salaire et la distribution cumulative de son salaire (arrondie à 2 décimales). Colonnes : name, salary, cume_dist. Triez par salary DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  name,\n  salary,\n  ROUND(CUME_DIST() OVER (ORDER BY salary), 2) AS cume_dist\nFROM employees\nORDER BY salary DESC",
+    "explanation": "CUME_DIST() retourne la fraction des lignes avec une valeur <= à la ligne courante. Pratique pour identifier si un employé est dans le top 25%, 50%, etc.",
+    "ordered": true
+  },
+  {
+    "id": "sql_040",
+    "title": "Statistiques complètes par statut de commande",
+    "difficulty": "medium",
+    "topic_tags": [
+      "GROUP BY",
+      "COUNT",
+      "SUM",
+      "AVG",
+      "MIN",
+      "MAX"
+    ],
+    "description": "Pour chaque statut de commande, calculez : nombre de commandes, revenu total, revenu moyen, revenu min et revenu max. Colonnes : status, order_count, total_revenue, avg_revenue, min_revenue, max_revenue. Triez par total_revenue DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  status,\n  COUNT(*) AS order_count,\n  ROUND(SUM(quantity * unit_price), 2) AS total_revenue,\n  ROUND(AVG(quantity * unit_price), 2) AS avg_revenue,\n  ROUND(MIN(quantity * unit_price), 2) AS min_revenue,\n  ROUND(MAX(quantity * unit_price), 2) AS max_revenue\nFROM orders\nGROUP BY status\nORDER BY total_revenue DESC",
+    "explanation": "Une seule requête GROUP BY peut calculer toutes les fonctions d'agrégation (COUNT, SUM, AVG, MIN, MAX) simultanément — efficace pour un profil rapide.",
+    "ordered": true
+  },
+  {
+    "id": "sql_041",
+    "title": "Mois avec le plus fort revenu par année",
+    "difficulty": "hard",
+    "topic_tags": [
+      "window functions",
+      "RANK",
+      "CTE",
+      "dates"
+    ],
+    "description": "À partir de la table monthly_sales, trouvez pour chaque année le mois ayant généré le plus fort revenu. Colonnes : year, month, revenue. Triez par year.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "WITH ranked AS (\n  SELECT\n    year,\n    month,\n    revenue,\n    RANK() OVER (PARTITION BY year ORDER BY revenue DESC) AS rk\n  FROM monthly_sales\n)\nSELECT year, month, revenue\nFROM ranked\nWHERE rk = 1\nORDER BY year",
+    "explanation": "RANK() OVER (PARTITION BY year ORDER BY revenue DESC) range les mois au sein de chaque année. On filtre rk = 1 pour garder le meilleur.",
+    "ordered": true
+  },
+  {
+    "id": "sql_042",
+    "title": "Répartition des commandes par jour de la semaine",
+    "difficulty": "medium",
+    "topic_tags": [
+      "strftime",
+      "GROUP BY",
+      "CASE WHEN"
+    ],
+    "description": "Calculez le nombre de commandes par jour de la semaine. Colonnes : day_name (Lun, Mar, …, Dim), order_count. Triez du lundi au dimanche.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  CASE strftime('%w', order_date)\n    WHEN '1' THEN 'Lun'\n    WHEN '2' THEN 'Mar'\n    WHEN '3' THEN 'Mer'\n    WHEN '4' THEN 'Jeu'\n    WHEN '5' THEN 'Ven'\n    WHEN '6' THEN 'Sam'\n    WHEN '0' THEN 'Dim'\n  END AS day_name,\n  strftime('%w', order_date) AS day_num,\n  COUNT(*) AS order_count\nFROM orders\nGROUP BY day_num\nORDER BY CAST(day_num AS INTEGER) % 7",
+    "explanation": "strftime('%w') retourne 0=dimanche … 6=samedi. Le modulo 7 réorganise pour afficher lundi en premier (1,2,3,4,5,6,0).",
+    "ordered": true
+  },
+  {
+    "id": "sql_043",
+    "title": "Revenu total par tier client",
+    "difficulty": "easy",
+    "topic_tags": [
+      "JOIN",
+      "GROUP BY",
+      "SUM"
+    ],
+    "description": "Calculez le revenu total généré par chaque tier de client (gold, silver, bronze). Colonnes : tier, total_revenue. Triez par total_revenue DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  c.tier,\n  ROUND(SUM(o.quantity * o.unit_price), 2) AS total_revenue\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nGROUP BY c.tier\nORDER BY total_revenue DESC",
+    "explanation": "On joint customers et orders, puis on groupe par tier pour sommer le revenu. Pratique pour valider que les clients gold génèrent effectivement plus de valeur.",
+    "ordered": true
+  },
+  {
+    "id": "sql_044",
+    "title": "Numérotation des commandes par client (ROW_NUMBER)",
+    "difficulty": "medium",
+    "topic_tags": [
+      "window functions",
+      "ROW_NUMBER",
+      "PARTITION BY"
+    ],
+    "description": "Ajoutez un numéro de commande par client (order_num), ordonné par order_date ASC. Colonnes : customer_name, order_date, order_num. Triez par customer_name, order_num.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  c.name AS customer_name,\n  o.order_date,\n  ROW_NUMBER() OVER (PARTITION BY o.customer_id ORDER BY o.order_date) AS order_num\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nORDER BY customer_name, order_num",
+    "explanation": "PARTITION BY customer_id remet le compteur à 1 pour chaque client. ORDER BY order_date détermine quel ordre est le 1er, 2e, etc.",
+    "ordered": true
+  },
+  {
+    "id": "sql_045",
+    "title": "Part du revenu par catégorie (% du total)",
+    "difficulty": "hard",
+    "topic_tags": [
+      "window functions",
+      "SUM OVER",
+      "pourcentage"
+    ],
+    "description": "Calculez le revenu de chaque catégorie de produit et sa part en pourcentage du revenu total. Colonnes : category, category_revenue, pct_of_total (arrondi à 1 décimale). Triez par category_revenue DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  p.category,\n  ROUND(SUM(o.quantity * o.unit_price), 2) AS category_revenue,\n  ROUND(\n    SUM(o.quantity * o.unit_price) * 100.0 /\n    SUM(SUM(o.quantity * o.unit_price)) OVER (),\n    1\n  ) AS pct_of_total\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.category\nORDER BY category_revenue DESC",
+    "explanation": "SUM(SUM(...)) OVER () calcule le total général à partir des sous-totaux de catégorie. Cette technique évite une sous-requête séparée.",
+    "ordered": true
+  },
+  {
+    "id": "sql_046",
+    "title": "Produits achetés par plus de 3 clients distincts",
+    "difficulty": "medium",
+    "topic_tags": [
+      "COUNT DISTINCT",
+      "HAVING",
+      "GROUP BY"
+    ],
+    "description": "Listez les produits commandés par plus de 3 clients distincts. Colonnes : product_name, distinct_customers. Triez par distinct_customers DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT\n  p.name AS product_name,\n  COUNT(DISTINCT o.customer_id) AS distinct_customers\nFROM products p\nJOIN orders o ON p.id = o.product_id\nGROUP BY p.id, p.name\nHAVING distinct_customers > 3\nORDER BY distinct_customers DESC",
+    "explanation": "COUNT(DISTINCT customer_id) compte les clients uniques par produit. HAVING filtre après l'agrégation pour ne garder que les produits populaires.",
+    "ordered": true
+  },
+  {
+    "id": "sql_047",
+    "title": "2e client par revenu (DENSE_RANK)",
+    "difficulty": "hard",
+    "topic_tags": [
+      "window functions",
+      "DENSE_RANK",
+      "CTE"
+    ],
+    "description": "Trouvez le client ayant le 2e plus grand revenu total. En cas d'ex-aequo, retournez tous les clients à cette position. Colonnes : customer_name, total_revenue, revenue_rank.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "WITH ranked AS (\n  SELECT\n    c.name AS customer_name,\n    ROUND(SUM(o.quantity * o.unit_price), 2) AS total_revenue,\n    DENSE_RANK() OVER (ORDER BY SUM(o.quantity * o.unit_price) DESC) AS revenue_rank\n  FROM customers c\n  JOIN orders o ON c.id = o.customer_id\n  GROUP BY c.id, c.name\n)\nSELECT customer_name, total_revenue, revenue_rank\nFROM ranked\nWHERE revenue_rank = 2",
+    "explanation": "DENSE_RANK permet de gérer les ex-aequo sans sauter de rang. Filtrer sur revenue_rank = 2 retourne tous les clients en 2e position.",
+    "ordered": false
+  },
+  {
+    "id": "sql_048",
+    "title": "Clients n'ayant pas commandé en 2022",
+    "difficulty": "medium",
+    "topic_tags": [
+      "NOT IN",
+      "sous-requête",
+      "dates"
+    ],
+    "description": "Listez les clients (name) qui n'ont passé aucune commande en 2022. Triez par name.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "SELECT name\nFROM customers\nWHERE id NOT IN (\n  SELECT DISTINCT customer_id\n  FROM orders\n  WHERE strftime('%Y', order_date) = '2022'\n)\nORDER BY name",
+    "explanation": "NOT IN filtre les clients dont l'id n'apparaît pas dans la liste des clients ayant commandé en 2022. Attention : NOT IN retourne FALSE si la sous-requête contient NULL.",
+    "ordered": true
+  },
+  {
+    "id": "sql_049",
+    "title": "Différence de revenu entre mois consécutifs (LAG)",
+    "difficulty": "hard",
+    "topic_tags": [
+      "window functions",
+      "LAG",
+      "dates",
+      "monthly_sales"
+    ],
+    "description": "À partir de monthly_sales, calculez pour chaque mois la différence de revenu par rapport au mois précédent. Colonnes : year, month, revenue, prev_revenue, diff. Triez par year, month. Ignorez les lignes sans mois précédent.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "WITH lagged AS (\n  SELECT\n    year,\n    month,\n    revenue,\n    LAG(revenue) OVER (ORDER BY year, month) AS prev_revenue\n  FROM monthly_sales\n)\nSELECT\n  year,\n  month,\n  revenue,\n  prev_revenue,\n  ROUND(revenue - prev_revenue, 2) AS diff\nFROM lagged\nWHERE prev_revenue IS NOT NULL\nORDER BY year, month",
+    "explanation": "LAG(revenue) OVER (ORDER BY year, month) récupère le revenu du mois précédent. La CTE isole le calcul, le SELECT principal filtre le premier mois (sans précédent).",
+    "ordered": true
+  },
+  {
+    "id": "sql_050",
+    "title": "Employés avec salaire supérieur à la moyenne de leur département",
+    "difficulty": "hard",
+    "topic_tags": [
+      "CTE",
+      "window functions",
+      "AVG OVER PARTITION BY"
+    ],
+    "description": "Listez les employés dont le salaire est supérieur à la moyenne de leur département. Colonnes : name, department, salary, dept_avg_salary (arrondi à 2 décimales). Triez par department, salary DESC.",
+    "setup_note": "",
+    "starter_code": "",
+    "solution_code": "WITH dept_avg AS (\n  SELECT\n    name,\n    department,\n    salary,\n    ROUND(AVG(salary) OVER (PARTITION BY department), 2) AS dept_avg_salary\n  FROM employees\n)\nSELECT name, department, salary, dept_avg_salary\nFROM dept_avg\nWHERE salary > dept_avg_salary\nORDER BY department, salary DESC",
+    "explanation": "AVG(salary) OVER (PARTITION BY department) calcule la moyenne du département pour chaque ligne sans GROUP BY. La CTE rend le filtrage WHERE possible.",
+    "ordered": true
+  }
+]

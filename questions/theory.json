@@ -1,0 +1,960 @@
+[
+  {
+    "id": "theory_001",
+    "title": "INNER JOIN vs LEFT JOIN",
+    "difficulty": "easy",
+    "topic_tags": [
+      "SQL",
+      "joins"
+    ],
+    "description": "Expliquez la différence entre INNER JOIN et LEFT JOIN. Donnez un exemple concret de quand utiliser chacun.",
+    "solution_text": "INNER JOIN ne retourne que les lignes où la condition de jointure est vérifiée dans LES DEUX tables (intersection). Les lignes sans correspondance sont exclues.\n\nLEFT JOIN retourne TOUTES les lignes de la table gauche, avec NULL dans les colonnes de la table droite s'il n'y a pas de correspondance.",
+    "key_points": [
+      "INNER JOIN = intersection — seules les lignes avec correspondance dans les deux tables",
+      "LEFT JOIN = toutes les lignes gauche + correspondances droite (NULL si absent)",
+      "Cas d'usage INNER JOIN : montants de commandes (on veut uniquement les commandes avec un produit existant)",
+      "Cas d'usage LEFT JOIN : liste de clients avec leurs commandes (on veut aussi les clients sans commande)",
+      "Anti-join pattern : LEFT JOIN + WHERE table_droite.id IS NULL → lignes sans correspondance"
+    ]
+  },
+  {
+    "id": "theory_002",
+    "title": "GROUP BY vs PARTITION BY",
+    "difficulty": "easy",
+    "topic_tags": [
+      "SQL",
+      "agrégation",
+      "window functions"
+    ],
+    "description": "Expliquez la différence entre GROUP BY et PARTITION BY. Quand utiliser l'un plutôt que l'autre ?",
+    "solution_text": "GROUP BY réduit le nombre de lignes : il regroupe les lignes et retourne une seule ligne par groupe avec des valeurs agrégées.\n\nPARTITION BY (utilisé dans OVER) ne réduit pas les lignes : il définit une 'fenêtre' dans laquelle la fonction est calculée, tout en conservant toutes les lignes originales.",
+    "key_points": [
+      "GROUP BY : réduit N lignes → 1 ligne par groupe. Pour avoir le chiffre d'affaires PAR mois",
+      "PARTITION BY : conserve toutes les N lignes, calcule dans chaque fenêtre. Pour avoir le rang d'une ligne AU SEIN de son groupe",
+      "Exemple : SELECT name, salary, AVG(salary) OVER (PARTITION BY department) → garde toutes les lignes, ajoute la moyenne du département sur chaque ligne",
+      "Règle : si on veut réduire les données → GROUP BY. Si on veut enrichir les lignes existantes → PARTITION BY"
+    ]
+  },
+  {
+    "id": "theory_003",
+    "title": "Clé primaire vs clé étrangère",
+    "difficulty": "easy",
+    "topic_tags": [
+      "modélisation",
+      "SQL",
+      "contraintes"
+    ],
+    "description": "Expliquez ce qu'est une clé primaire (PRIMARY KEY) et une clé étrangère (FOREIGN KEY). Quel est leur rôle dans un schéma relationnel ?",
+    "solution_text": "La clé primaire (PK) identifie de façon unique chaque ligne d'une table. Elle est unique et non-NULL. C'est l'identifiant de référence.\n\nLa clé étrangère (FK) est une colonne qui référence la clé primaire d'une autre table (ou la même). Elle assure l'intégrité référentielle : on ne peut pas avoir une FK pointant vers une ligne inexistante.",
+    "key_points": [
+      "PRIMARY KEY : identifiant unique par ligne, non-NULL, une seule par table (peut être composite)",
+      "FOREIGN KEY : référence la PK d'une autre table, peut être NULL (optionnelle), assure la cohérence des données",
+      "Intégrité référentielle : la BD empêche de créer une commande avec un customer_id inexistant",
+      "Une FK crée une relation entre tables : orders.customer_id → customers.id",
+      "Clé naturelle vs surrogate key : la PK peut être une valeur métier (email) ou un id auto-incrémenté"
+    ]
+  },
+  {
+    "id": "theory_004",
+    "title": "Index SQL : utilité et impact sur les performances",
+    "difficulty": "medium",
+    "topic_tags": [
+      "SQL",
+      "performance",
+      "index",
+      "optimisation"
+    ],
+    "description": "Qu'est-ce qu'un index en SQL ? Comment améliore-t-il les performances ? Quand NE PAS créer d'index ?",
+    "solution_text": "Un index est une structure de données (souvent un B-tree) créée sur une ou plusieurs colonnes, permettant au moteur SQL de trouver des lignes rapidement sans scanner toute la table (full table scan).\n\nSans index : O(n) pour trouver une ligne. Avec index : O(log n).",
+    "key_points": [
+      "Un index accélère les SELECT avec WHERE, JOIN, ORDER BY sur les colonnes indexées",
+      "Mais ralentit les INSERT, UPDATE, DELETE car l'index doit être mis à jour",
+      "Créer un index sur : colonnes fréquemment filtrées (WHERE), colonnes de jointure (FK), colonnes triées souvent",
+      "Ne pas indexer : petites tables (full scan plus rapide), colonnes avec peu de valeurs distinctes (ex: statut avec 3 valeurs)",
+      "Index composite : CREATE INDEX idx_name ON orders(customer_id, order_date) — utile pour les requêtes filtrant sur les deux colonnes",
+      "EXPLAIN ou EXPLAIN ANALYZE pour voir si l'index est utilisé"
+    ]
+  },
+  {
+    "id": "theory_005",
+    "title": "Normalisation : 1NF, 2NF, 3NF",
+    "difficulty": "medium",
+    "topic_tags": [
+      "modélisation",
+      "normalisation",
+      "SQL"
+    ],
+    "description": "Expliquez les trois premières formes normales (1NF, 2NF, 3NF). Donnez un exemple de violation pour chacune.",
+    "solution_text": "La normalisation structure les données pour éviter la redondance et les anomalies de mise à jour.\n\n1NF : chaque cellule contient une valeur atomique (pas de listes). Les colonnes ont des noms uniques. Exemple de violation : stocker '1,2,3' dans un champ product_ids.\n\n2NF : 1NF + chaque colonne non-clé dépend de TOUTE la clé primaire (si PK composite). Exemple de violation : dans une table (order_id, product_id, product_name), product_name ne dépend que de product_id, pas de l'ordre complet.\n\n3NF : 2NF + pas de dépendances transitives. Chaque colonne dépend directement de la PK, pas d'une autre colonne non-clé. Exemple : stocker city ET postal_code dans customers, alors que city dépend de postal_code (pas de customer_id).",
+    "key_points": [
+      "1NF : valeurs atomiques, pas de groupes répétés dans les colonnes",
+      "2NF : pas de dépendance partielle sur une clé composite (colonne qui dépend que d'une partie de la PK)",
+      "3NF : pas de dépendance transitive (A → B → C : B et C doivent être dans des tables séparées)",
+      "En pratique : la 3NF suffit pour la plupart des BD relationnelles",
+      "Dénormalisation volontaire : acceptable pour les DWH pour des raisons de performance (évite les JOINs coûteux)"
+    ]
+  },
+  {
+    "id": "theory_006",
+    "title": "Schéma étoile vs schéma flocon",
+    "difficulty": "medium",
+    "topic_tags": [
+      "data warehouse",
+      "modélisation",
+      "OLAP"
+    ],
+    "description": "Expliquez la différence entre un schéma étoile (star schema) et un schéma flocon (snowflake schema). Quels sont les avantages et inconvénients de chacun ?",
+    "solution_text": "Schéma étoile : une table de faits centrale entourée de tables de dimensions dénormalisées. Les dimensions sont 'plates' (une seule table par dimension).\n\nSchéma flocon : les tables de dimensions sont normalisées et décomposées en sous-tables reliées par FK. Ressemble à un flocon de neige.",
+    "key_points": [
+      "Étoile : dimensions dénormalisées (ex: une table product avec category dedans). Simple, JOINs réduits, meilleures performances",
+      "Flocon : dimensions normalisées (product → category → category_group). Moins de redondance, plus de JOINs",
+      "Le star schema est GÉNÉRALEMENT préféré en DWH pour sa simplicité et performance (BI tools le préfèrent)",
+      "Flocon utile quand les dimensions sont très volumineuses et que la redondance pose problème",
+      "La plupart des outils BI (Tableau, Power BI, Looker) fonctionnent mieux avec un star schema"
+    ]
+  },
+  {
+    "id": "theory_007",
+    "title": "Table de faits vs table de dimensions",
+    "difficulty": "easy",
+    "topic_tags": [
+      "data warehouse",
+      "modélisation",
+      "fact",
+      "dimension"
+    ],
+    "description": "Dans un Data Warehouse, quelle est la différence entre une table de faits (fact table) et une table de dimensions (dimension table) ? Donnez des exemples.",
+    "solution_text": "Table de faits : contient les événements ou transactions mesurables. Chaque ligne représente un fait (vente, clic, commande). Contient des métriques numériques et des FK vers les dimensions.\n\nTable de dimensions : contient les contextes/descripteurs des faits. Ce sont les entités sur lesquelles on filtre, groupe, ou analyse.",
+    "key_points": [
+      "Table de faits : orders, sales, events — lignes = transactions. Contient des mesures (revenue, quantity) et des FK",
+      "Table de dimensions : customers, products, dates, geography — lignes = entités. Contient des attributs descriptifs",
+      "La table de faits grandit rapidement (transactions), les dimensions sont relativement stables",
+      "Granularité : la table de faits doit avoir une granularité claire (1 ligne = 1 commande, ou 1 ligne = 1 produit commandé ?)",
+      "Date dimension : quasi-obligatoire dans un DWH, contient des attributs temporels (jour férié, trimestre fiscal, saison...)"
+    ]
+  },
+  {
+    "id": "theory_008",
+    "title": "OLAP vs OLTP",
+    "difficulty": "medium",
+    "topic_tags": [
+      "architecture",
+      "data warehouse",
+      "base de données"
+    ],
+    "description": "Expliquez la différence entre OLAP et OLTP. Quels types de systèmes correspondent à chacun ?",
+    "solution_text": "OLTP (Online Transaction Processing) : systèmes opérationnels conçus pour traiter de nombreuses transactions rapides (INSERT, UPDATE, DELETE). Optimisés pour l'écriture. Ex: base de données d'une app e-commerce.\n\nOLAP (Online Analytical Processing) : systèmes décisionnels conçus pour des requêtes analytiques complexes sur de grands volumes. Optimisés pour la lecture. Ex: Data Warehouse, Redshift, BigQuery.",
+    "key_points": [
+      "OLTP : transactions rapides, CRUD, données normalisées, nombreux utilisateurs simultanés, faible volume par requête",
+      "OLAP : agrégations sur des millions/milliards de lignes, données dénormalisées, peu d'utilisateurs, requêtes longues",
+      "OLTP → sources de données ; OLAP → destination après ETL/ELT",
+      "Exemple OLTP : MySQL, PostgreSQL, Oracle. Exemple OLAP : Redshift, BigQuery, Snowflake, ClickHouse",
+      "Columnar storage : les BD OLAP stockent les données par colonne (non par ligne), idéal pour les agrégations sur peu de colonnes"
+    ]
+  },
+  {
+    "id": "theory_009",
+    "title": "Data Lake vs Data Warehouse vs Data Lakehouse",
+    "difficulty": "easy",
+    "topic_tags": [
+      "architecture",
+      "data lake",
+      "data warehouse"
+    ],
+    "description": "Expliquez ce qu'est un Data Lake. Quelles sont ses différences avec un Data Warehouse ? Qu'est-ce qu'un Data Lakehouse ?",
+    "solution_text": "Data Lake : stockage de données brutes dans leur format natif (CSV, JSON, Parquet, images...). Très peu de structure imposée. Pas cher, flexible, mais peut devenir un 'data swamp' sans gouvernance.\n\nData Warehouse : données structurées, nettoyées, modélisées (star schema), prêtes à l'analyse. Coûteux, mais fiable et performant.\n\nData Lakehouse : hybride qui combine le stockage bon marché du Lake avec les capacités analytiques et la gouvernance du Warehouse (ex: Databricks Delta Lake, Apache Iceberg).",
+    "key_points": [
+      "Data Lake : toutes les données, tous formats, faible coût (S3, GCS). 'Schema on read' = structure appliquée à la lecture",
+      "Data Warehouse : données modélisées, 'Schema on write' = structure imposée à l'écriture. Requêtes rapides, gouvernance forte",
+      "Data Swamp : un Data Lake mal géré sans catalogue, métadonnées ou gouvernance",
+      "Lakehouse : Open Table Format (Delta, Iceberg, Hudi) sur un Data Lake = ACID transactions + performance analytique",
+      "Flux typique : Source (OLTP) → ETL/ELT → Data Warehouse → BI Tools"
+    ]
+  },
+  {
+    "id": "theory_010",
+    "title": "Détecter et traiter les outliers",
+    "difficulty": "medium",
+    "topic_tags": [
+      "statistiques",
+      "EDA",
+      "outliers",
+      "IQR",
+      "z-score"
+    ],
+    "description": "Quelles sont les principales méthodes pour détecter les outliers ? Comment décider de les traiter ? Citez les approches de traitement possibles.",
+    "solution_text": "Détection :\n1. Méthode IQR (Tukey) : Q1 - 1.5×IQR < valeur < Q3 + 1.5×IQR. Robuste, non paramétrique.\n2. Z-score : |z| = |(valeur - μ) / σ| > 3. Suppose une distribution normale.\n3. Visualisation : boxplot, scatter plot, histogram.\n\nTraitement : dépend du contexte métier.",
+    "key_points": [
+      "IQR : robuste aux distributions non normales, sensible aux queues épaisses. Seuil 1.5×IQR pour outliers légers, 3×IQR pour extrêmes",
+      "Z-score : suppose normalité. Sensible si la moyenne et l'écart-type sont eux-mêmes affectés par les outliers",
+      "Traitement 1 - Conserver : si l'outlier est réel (une vraie grosse commande), le conserver et noter l'exception",
+      "Traitement 2 - Supprimer : si erreur de saisie ou donnée corrompue. Documenter pourquoi",
+      "Traitement 3 - Capping/Winsorizing : remplacer par le percentile 5 ou 95 — conserve la ligne mais limite l'impact",
+      "Traitement 4 - Transformer : log(x) ou sqrt(x) réduit l'effet des grandes valeurs",
+      "TOUJOURS comprendre la cause avant de traiter : erreur de données ? Cas réel rare ? Problème systémique ?"
+    ]
+  },
+  {
+    "id": "theory_011",
+    "title": "Moyenne, médiane, mode : différences et cas d'usage",
+    "difficulty": "easy",
+    "topic_tags": [
+      "statistiques",
+      "tendance centrale",
+      "EDA"
+    ],
+    "description": "Expliquez la différence entre moyenne, médiane et mode. Quand préférer l'une à l'autre ? Donnez un exemple concret.",
+    "solution_text": "Moyenne : somme / nombre de valeurs. Sensible aux outliers.\nMédiane : valeur centrale (50e percentile). Robuste aux outliers.\nMode : valeur la plus fréquente. Utile pour les variables catégorielles.",
+    "key_points": [
+      "Moyenne : sensible aux valeurs extrêmes. Ex: salaire moyen biaisé par les très hauts salaires",
+      "Médiane : robuste. Préférer pour les revenus, prix immobilier, temps de réponse",
+      "Si moyenne > médiane : distribution à droite (right-skewed). Ex: revenus, prix des logements",
+      "Si moyenne ≈ médiane : distribution symétrique (proche normale)",
+      "Mode : pour les catégories (quelle ville est la plus représentée ?), ou pour les distributions bimodales",
+      "Règle pratique : pour les données financières et les temps, privilégiez la médiane"
+    ]
+  },
+  {
+    "id": "theory_012",
+    "title": "Variance et écart-type : définition et utilisation",
+    "difficulty": "easy",
+    "topic_tags": [
+      "statistiques",
+      "dispersion",
+      "écart-type"
+    ],
+    "description": "Définissez la variance et l'écart-type. Quelle est leur utilité en Data Analysis ? Quelle est la différence entre variance de population et variance d'échantillon ?",
+    "solution_text": "Variance : moyenne des carrés des écarts à la moyenne. Mesure la dispersion.\nÉcart-type (σ) : racine carrée de la variance. Dans la même unité que les données.\n\nVariance de population (σ²) : divise par N. Variance d'échantillon (s²) : divise par N-1 (correction de Bessel, non biaisée).",
+    "key_points": [
+      "Variance faible → données proches de la moyenne. Variance élevée → données dispersées",
+      "L'écart-type est préférable à la variance car dans la même unité que les données (ex: euros, pas euros²)",
+      "Règle empirique (loi normale) : 68% des données dans ±1σ, 95% dans ±2σ, 99.7% dans ±3σ",
+      "Population vs échantillon : pandas .std() utilise N-1 par défaut (ddof=1). SQL VAR_POP vs VAR_SAMP",
+      "Coefficient de variation (CV) = σ/μ : compare la dispersion relative de deux séries d'unités différentes"
+    ]
+  },
+  {
+    "id": "theory_013",
+    "title": "A/B Testing : principes et erreurs courantes",
+    "difficulty": "hard",
+    "topic_tags": [
+      "expérimentation",
+      "statistiques",
+      "p-value",
+      "A/B test"
+    ],
+    "description": "Expliquez le principe de l'A/B testing. Quelles sont les étapes pour conduire un test rigoureux ? Quelles sont les erreurs courantes à éviter ?",
+    "solution_text": "L'A/B testing est une expérience contrôlée randomisée : on expose aléatoirement deux groupes à deux versions différentes (A = contrôle, B = variant) et on mesure une métrique cible.",
+    "key_points": [
+      "Étapes : définir hypothesis → choisir métrique → calculer sample size → randomiser → collecter → analyser → décider",
+      "Hypothèse nulle H0 : 'pas de différence entre A et B'. On cherche à rejeter H0",
+      "p-value < 0.05 : probabilité d'observer ce résultat si H0 était vraie. Seuil arbitraire, pas une vérité",
+      "Erreur Type I (faux positif) : conclure à une différence qui n'existe pas (contrôlée par α = 0.05)",
+      "Erreur Type II (faux négatif) : rater une vraie différence (contrôlée par la puissance statistique, typiquement 80%)",
+      "Peeking problem : regarder les résultats avant la fin du test et arrêter prématurément → inflation du taux d'erreur",
+      "Novelty effect : les utilisateurs réagissent à la nouveauté, pas à l'amélioration réelle",
+      "Sample ratio mismatch : si A/B ont des tailles très différentes de ce qui était prévu, il y a un problème d'attribution"
+    ]
+  },
+  {
+    "id": "theory_014",
+    "title": "Analyse de cohorte",
+    "difficulty": "medium",
+    "topic_tags": [
+      "métriques",
+      "rétention",
+      "cohorte",
+      "comportement utilisateur"
+    ],
+    "description": "Qu'est-ce qu'une analyse de cohorte ? Comment la construire ? Dans quel contexte l'utiliser ?",
+    "solution_text": "Une analyse de cohorte regroupe des utilisateurs/clients partageant une caractéristique commune sur une période donnée (ex: tous les clients ayant effectué leur premier achat en janvier 2023), puis suit leur comportement dans le temps.",
+    "key_points": [
+      "Cohorte = groupe d'utilisateurs partageant un événement commun dans une fenêtre temporelle (signup, premier achat...)",
+      "Permet de mesurer la rétention : combien de clients du mois M sont encore actifs aux mois M+1, M+2, M+3...",
+      "Visualisation : matrice de rétention (cohortes en lignes, périodes en colonnes, % de rétention en valeurs)",
+      "Différencie l'effet cohorte (comportement d'un groupe spécifique) de l'effet période (tous les groupes affectés en même temps)",
+      "Utile pour évaluer l'impact d'un changement produit : les cohortes post-changement ont-elles une meilleure rétention ?",
+      "Ne pas confondre avec segmentation : une cohorte est définie par le TEMPS d'entrée, un segment par une CARACTÉRISTIQUE"
+    ]
+  },
+  {
+    "id": "theory_015",
+    "title": "KPIs e-commerce : CAC, LTV, Churn, ARPU",
+    "difficulty": "medium",
+    "topic_tags": [
+      "métriques",
+      "KPI",
+      "business",
+      "e-commerce"
+    ],
+    "description": "Définissez et expliquez comment calculer : CAC, LTV (ou CLV), Churn rate et ARPU. Quelle est la relation clé entre LTV et CAC ?",
+    "solution_text": "CAC (Customer Acquisition Cost) : coût total marketing + ventes / nombre de nouveaux clients acquis. Mesure l'efficacité d'acquisition.\n\nLTV (Lifetime Value) : revenu total généré par un client sur toute sa relation avec l'entreprise.\n\nChurn rate : taux de désabonnement. Clients perdus / clients début de période.\n\nARPU (Average Revenue Per User) : revenu / nombre d'utilisateurs actifs.",
+    "key_points": [
+      "LTV > 3×CAC : règle heuristique de santé d'un business SaaS/e-commerce",
+      "LTV simple = ARPU × durée de vie moyenne = ARPU / churn_rate",
+      "Churn rate mensuel de 5% → durée de vie moyenne = 1/0.05 = 20 mois",
+      "Payback period : CAC / (ARPU × marge brute) — nombre de mois pour récupérer le coût d'acquisition",
+      "ARPU vs ARPPU (Average Revenue Per Paying User) : important dans les freemium (tous les users vs users payants)",
+      "Net Revenue Retention (NRR) : inclut expansions et churns. NRR > 100% = croissance sans nouveaux clients"
+    ]
+  },
+  {
+    "id": "theory_016",
+    "title": "Taux de rétention vs taux de churn",
+    "difficulty": "easy",
+    "topic_tags": [
+      "métriques",
+      "rétention",
+      "churn",
+      "KPI"
+    ],
+    "description": "Définissez le taux de rétention et le taux de churn. Comment les calculer ? Quelle est leur relation mathématique ? Quelles sont les nuances importantes ?",
+    "solution_text": "Rétention = clients actifs à la fin de période / clients début de période (excluant nouveaux)\nChurn = clients perdus / clients début de période\n\nRétention + Churn = 100% (dans la définition simple)",
+    "key_points": [
+      "Retention rate = (clients fin - nouveaux clients) / clients début × 100",
+      "Churn rate = clients perdus / clients début × 100",
+      "Revenue churn vs Customer churn : perdre peu de clients mais gros peut être pire que perdre beaucoup de petits",
+      "Churn involontaire (carte expirée) vs churn volontaire (résiliation active) : traitement différent",
+      "Leading indicators du churn : baisse d'utilisation, NPS en baisse, pas de login depuis X jours",
+      "Réduction du churn > acquisition : retenir un client existant coûte 5-7× moins cher que d'en acquérir un nouveau"
+    ]
+  },
+  {
+    "id": "theory_017",
+    "title": "merge, join et concat en Pandas",
+    "difficulty": "medium",
+    "topic_tags": [
+      "Pandas",
+      "merge",
+      "join",
+      "concat"
+    ],
+    "description": "Expliquez la différence entre pd.merge(), DataFrame.join() et pd.concat() en Pandas. Quand utiliser chacun ?",
+    "solution_text": "pd.merge() : le plus flexible. Équivalent du JOIN SQL. Jointure sur des colonnes spécifiées de deux DataFrames quelconques.\n\nDataFrame.join() : sucre syntaxique pour merge. Joint sur l'index par défaut. Pratique mais moins flexible.\n\npd.concat() : empilage vertical ou horizontal. Pas une jointure sur clé, mais une concaténation physique.",
+    "key_points": [
+      "pd.merge(left, right, on='key') : jointure sur colonnes, tous types de how (inner/left/right/outer)",
+      "df1.join(df2, on='key') : pratique pour join sur index. Évite left_on/right_on quand les colonnes ont le même nom",
+      "pd.concat([df1, df2]) : empile verticalement (axis=0) ou côte-à-côte (axis=1). Pas de jointure sur valeurs",
+      "Conflit de colonnes : merge() ajoute des suffixes (_x, _y). concat() peut créer des NaN si colonnes absentes",
+      "Performance : pour les très grands DataFrames, merge() peut être lent — considérer merge sur index avec join()"
+    ]
+  },
+  {
+    "id": "theory_018",
+    "title": "apply, transform et agg en Pandas",
+    "difficulty": "medium",
+    "topic_tags": [
+      "Pandas",
+      "groupby",
+      "apply",
+      "transform",
+      "agg"
+    ],
+    "description": "Expliquez la différence entre apply(), transform() et agg() dans un contexte groupby. Donnez un exemple pour chacun.",
+    "solution_text": "Tous trois s'utilisent avec groupby(), mais ont des comportements différents en termes de résultat :\n\nagg() : réduit chaque groupe à une valeur. Retourne un DataFrame avec une ligne par groupe.\ntransform() : retourne un résultat de même taille que l'entrée. Utile pour créer des colonnes enrichies.\napply() : le plus flexible mais le moins performant. Applique une fonction arbitraire à chaque groupe.",
+    "key_points": [
+      "agg() : N lignes → 1 ligne par groupe. groupby('dept').agg({'salary': 'mean'}) → moyenne par département",
+      "transform() : N lignes → N lignes. groupby('dept')['salary'].transform('mean') → colonne avec la moyenne du dept sur chaque ligne",
+      "Cas d'usage transform : calculer l'écart au sein d'un groupe (salary - group_mean), normaliser au sein d'un groupe",
+      "apply() : peut retourner n'importe quoi (valeur scalaire, Series, DataFrame). Éviter si agg/transform suffisent (plus lent car boucle Python)",
+      "Ordre de préférence pour la performance : agg > transform > apply"
+    ]
+  },
+  {
+    "id": "theory_019",
+    "title": "Corrélation de Pearson vs Spearman",
+    "difficulty": "medium",
+    "topic_tags": [
+      "statistiques",
+      "corrélation",
+      "Pearson",
+      "Spearman"
+    ],
+    "description": "Expliquez la corrélation de Pearson. Quelles sont ses hypothèses ? Quand utiliser Spearman à la place ? Qu'est-ce que 'corrélation ≠ causalité' ?",
+    "solution_text": "Corrélation de Pearson (r) : mesure la relation linéaire entre deux variables continues. r ∈ [-1, 1]. r = 1 → corrélation positive parfaite, r = 0 → pas de relation linéaire, r = -1 → corrélation négative parfaite.",
+    "key_points": [
+      "Pearson suppose : relation linéaire, variables continues, distribution approximativement normale, pas d'outliers majeurs",
+      "Spearman : corrélation des rangs. Non paramétrique, robuste aux outliers et aux distributions non normales. Utiliser quand Pearson n'est pas approprié",
+      "r² = coefficient de détermination : proportion de variance de Y expliquée par X (r=0.7 → r²=0.49 → 49% de la variance expliquée)",
+      "Corrélation ≠ causalité : 'la corrélation entre ventes de glaces et noyades' — les deux sont causées par la chaleur (variable confondante)",
+      "Pour tester la causalité : expérience randomisée, ou méthodes quasi-expérimentales (difference-in-differences, regression discontinuity)"
+    ]
+  },
+  {
+    "id": "theory_020",
+    "title": "Biais de sélection et biais de confirmation",
+    "difficulty": "hard",
+    "topic_tags": [
+      "pensée analytique",
+      "biais",
+      "méthodologie"
+    ],
+    "description": "Définissez le biais de sélection et le biais de confirmation. Donnez un exemple concret de chacun en Data Analysis. Comment les détecter et les atténuer ?",
+    "solution_text": "Biais de sélection : se produit quand l'échantillon analysé n'est pas représentatif de la population cible, généralement parce que la méthode de collecte ou de sélection des données est non aléatoire.\n\nBiais de confirmation : tendance à chercher, interpréter ou mémoriser les données qui confirment nos croyances préexistantes.",
+    "key_points": [
+      "Biais de sélection exemple : analyser la rétention des utilisateurs 'premium' seulement → l'échantillon est auto-sélectionné (les meilleurs users)",
+      "Survivorship bias (sous-type) : analyser les produits encore en vente, ignorer les flops → conclusions trop optimistes",
+      "Biais de confirmation exemple : un stakeholder croit qu'une feature est bonne, l'analyste cherche (inconsciemment) des métriques qui le confirment",
+      "Atténuation biais de sélection : randomisation, échantillonnage stratifié, documenter la méthode de collecte",
+      "Atténuation biais de confirmation : pré-enregistrement de l'hypothèse, peer review de l'analyse, challenger les résultats positifs autant que les négatifs",
+      "Principe : toujours se demander 'qui est absent de mes données ?'"
+    ]
+  },
+  {
+    "id": "theory_021",
+    "title": "Approche méthodologique d'une EDA",
+    "difficulty": "medium",
+    "topic_tags": [
+      "EDA",
+      "méthodologie",
+      "exploration"
+    ],
+    "description": "Décrivez votre approche pour mener une Exploratory Data Analysis (EDA) sur un nouveau dataset. Quelles étapes suivre ? Quels outils utiliser ?",
+    "solution_text": "L'EDA est une étape exploratoire pour comprendre la structure, la qualité et les patterns d'un dataset avant la modélisation ou l'analyse.",
+    "key_points": [
+      "Étape 1 - Comprendre le contexte : que représente chaque ligne ? Quelle est la granularité ? D'où viennent les données ?",
+      "Étape 2 - Vue d'ensemble : .shape, .dtypes, .head(), .describe() — dimensions, types, statistiques de base",
+      "Étape 3 - Qualité : valeurs manquantes (df.isna().sum()), doublons (df.duplicated()), valeurs aberrantes",
+      "Étape 4 - Distributions univariées : histogrammes pour les numériques, bar charts pour les catégorielles",
+      "Étape 5 - Relations bivariées : scatter plots, boxplots par catégorie, heatmap de corrélation",
+      "Étape 6 - Temporelle si applicable : tendances, saisonnalité, anomalies dans le temps",
+      "Étape 7 - Hypothèses : formuler des questions à partir des patterns observés et les tester"
+    ]
+  },
+  {
+    "id": "theory_022",
+    "title": "Supervised vs Unsupervised Learning",
+    "difficulty": "easy",
+    "topic_tags": [
+      "machine learning",
+      "supervised",
+      "unsupervised"
+    ],
+    "description": "Expliquez la différence entre apprentissage supervisé et non-supervisé. Donnez 3 exemples d'algorithmes et de cas d'usage pour chacun.",
+    "solution_text": "Apprentissage supervisé : on entraîne un modèle sur des données étiquetées (on connaît la réponse). Le modèle apprend à prédire l'étiquette pour de nouvelles données.\n\nApprentissage non-supervisé : pas d'étiquettes. Le modèle découvre des structures, patterns ou groupes dans les données.",
+    "key_points": [
+      "Supervisé : régression linéaire (prédire un prix), régression logistique (churn oui/non), random forest (classification de clients)",
+      "Non-supervisé : K-Means (segmentation clients), PCA (réduction de dimensions), DBSCAN (détection d'anomalies)",
+      "Supervisé nécessite des données labellisées = coûteux. Non-supervisé explore sans labels",
+      "Semi-supervisé : peu de labels + beaucoup de non-labellisés. Utile quand le labelling est coûteux",
+      "Apprentissage par renforcement : l'agent apprend par essai-erreur avec des récompenses (hors scope DA généralement)",
+      "En DA, l'unsupervised (clustering, anomalie) est très utile pour la segmentation client sans label préexistant"
+    ]
+  },
+  {
+    "id": "theory_023",
+    "title": "Overfitting et underfitting",
+    "difficulty": "medium",
+    "topic_tags": [
+      "machine learning",
+      "overfitting",
+      "régularisation",
+      "validation"
+    ],
+    "description": "Expliquez ce qu'est l'overfitting et l'underfitting en machine learning. Comment les détecter ? Quelles sont les solutions ?",
+    "solution_text": "Overfitting : le modèle apprend trop bien les données d'entraînement, y compris le bruit. Il performe très bien sur le train set mais mal sur des données nouvelles (mauvaise généralisation).\n\nUnderfitting : le modèle est trop simple pour capturer la structure des données. Il performe mal même sur le train set.",
+    "key_points": [
+      "Overfitting : train error faible, test error élevée. Le modèle a 'mémorisé' au lieu d'apprendre",
+      "Underfitting : train error élevée ET test error élevée. Biais élevé",
+      "Détection : courbes d'apprentissage (train vs validation error en fonction du volume de données)",
+      "Solutions overfitting : plus de données, régularisation (L1/L2), dropout (réseaux de neurones), réduire la complexité du modèle, cross-validation",
+      "Solutions underfitting : modèle plus complexe, plus de features, moins de régularisation",
+      "Bias-variance tradeoff : modèle simple = haut biais, faible variance. Modèle complexe = faible biais, haute variance"
+    ]
+  },
+  {
+    "id": "theory_024",
+    "title": "Régression linéaire : hypothèses et limites",
+    "difficulty": "hard",
+    "topic_tags": [
+      "statistiques",
+      "régression",
+      "machine learning"
+    ],
+    "description": "Quelles sont les hypothèses fondamentales de la régression linéaire (OLS) ? Comment vérifier qu'elles sont respectées ? Que faire quand elles ne le sont pas ?",
+    "solution_text": "La régression OLS (Ordinary Least Squares) minimise la somme des carrés des résidus. Elle repose sur plusieurs hypothèses qui conditionnent la validité des coefficients et intervalles de confiance.",
+    "key_points": [
+      "H1 - Linéarité : la relation entre X et Y est linéaire. Vérifier : scatter plot des résidus vs valeurs prédites",
+      "H2 - Indépendance des résidus : les erreurs ne sont pas autocorrélées. Vérifier : test de Durbin-Watson, plot des résidus dans le temps",
+      "H3 - Homoscédasticité : variance constante des résidus. Vérifier : residual plot (pas de forme d'entonnoir)",
+      "H4 - Normalité des résidus : pour l'inférence statistique (IC, p-values). Vérifier : QQ-plot, test de Shapiro-Wilk",
+      "H5 - Pas de multicolinéarité parfaite entre les X. Vérifier : VIF (Variance Inflation Factor) < 5-10",
+      "Si violations : transformer les variables (log), utiliser une régression robuste, passer à un modèle non-linéaire"
+    ]
+  },
+  {
+    "id": "theory_025",
+    "title": "Présenter une analyse à des non-techniciens",
+    "difficulty": "medium",
+    "topic_tags": [
+      "communication",
+      "storytelling",
+      "soft skills",
+      "data presentation"
+    ],
+    "description": "Comment présenter une analyse de données à un public non technique (managers, commerciaux) ? Quels sont les principes d'une bonne data communication ?",
+    "solution_text": "La communication des données est autant un art qu'une science. L'objectif n'est pas de montrer l'analyse, mais de permettre une décision.",
+    "key_points": [
+      "Commencer par la conclusion (bottom line up front) : ne pas faire attendre la réponse à la question. Les managers veulent la réponse, pas le chemin",
+      "Adapter au niveau de l'audience : éviter les termes techniques, utiliser des analogies métier",
+      "Une seule idée par slide/visuel : surcharger d'informations dilue le message",
+      "Visualisation adaptée : bar chart pour comparer, line chart pour les tendances, scatter pour les corrélations. Éviter les pie charts avec trop de catégories",
+      "Contextualiser les chiffres : 'notre churn est de 5%' → dire si c'est bien ou mal par rapport à l'industrie (benchmark)",
+      "Raconter une histoire (data storytelling) : contexte → problème → données → insight → recommandation",
+      "Anticiper les questions : avoir les détails techniques disponibles, mais ne pas les mettre dans la présentation principale"
+    ]
+  },
+  {
+    "id": "theory_026",
+    "title": "ETL vs ELT : quelle différence ?",
+    "difficulty": "medium",
+    "topic_tags": [
+      "ETL",
+      "ELT",
+      "pipeline data"
+    ],
+    "description": "Expliquez la différence entre ETL (Extract-Transform-Load) et ELT (Extract-Load-Transform). Quand utiliser l'un ou l'autre ?",
+    "solution_text": "**ETL** : les données sont extraites d'une source, transformées dans un outil intermédiaire (ex : Spark, dbt en mémoire, script Python), puis chargées dans la destination.\n\n**ELT** : les données brutes sont d'abord chargées dans le data warehouse (Snowflake, BigQuery, Redshift), puis transformées directement dans cet entrepôt via SQL.\n\n**Quand utiliser ETL** : sources avec données sensibles à anonymiser avant stockage, transformations complexes difficilement exprimables en SQL, destinations avec capacité de stockage limitée.\n\n**Quand utiliser ELT** : data warehouses modernes avec puissance de calcul massive, besoin de conserver les données brutes (retraitement possible), équipes fortes en SQL.",
+    "key_points": [
+      "ETL transforme avant de stocker ; ELT stocke brut puis transforme",
+      "ELT est le paradigme dominant avec les data warehouses modernes (BigQuery, Snowflake)",
+      "dbt (data build tool) est l'outil de référence pour l'ELT",
+      "L'ELT conserve les données brutes, facilitant le retraitement"
+    ]
+  },
+  {
+    "id": "theory_027",
+    "title": "SCD Type 1, 2 et 3 : dimensions lentement changeantes",
+    "difficulty": "hard",
+    "topic_tags": [
+      "SCD",
+      "data warehouse",
+      "historisation"
+    ],
+    "description": "Qu'est-ce qu'une Slowly Changing Dimension (SCD) ? Décrivez les types 1, 2 et 3 avec un exemple concret.",
+    "solution_text": "Une **SCD** est une dimension dont les attributs changent lentement dans le temps (ex : adresse d'un client, titre d'un employé).\n\n**Type 1 — Écrasement** : on met à jour directement la valeur. Pas d'historique. Simple mais perd l'info passée.\n*Ex : un client déménage → on met à jour son adresse.*\n\n**Type 2 — Ajout de ligne** : on insère une nouvelle ligne avec les nouvelles valeurs, un flag 'actif' et des dates de validité. L'historique complet est conservé.\n*Ex : nouvelle ligne avec adresse = 'Paris', valid_from = '2024-01-01', is_current = True.*\n\n**Type 3 — Colonne précédente** : on ajoute une colonne pour la valeur précédente (ex : previous_address). Conserve 1 niveau d'historique seulement.",
+    "key_points": [
+      "Type 1 : pas d'historique, simple, suffisant pour les corrections",
+      "Type 2 : historique complet avec surrogate key, valid_from/valid_to, is_current",
+      "Type 3 : historique partiel (une valeur précédente), rarement utilisé",
+      "Le Type 2 est le plus répandu en data warehouse"
+    ]
+  },
+  {
+    "id": "theory_028",
+    "title": "Dimensions de la qualité des données",
+    "difficulty": "medium",
+    "topic_tags": [
+      "qualité des données",
+      "data quality"
+    ],
+    "description": "Quelles sont les principales dimensions de la qualité des données ? Illustrez chacune avec un exemple.",
+    "solution_text": "**Complétude** : absence de valeurs manquantes. *Ex : 15% des emails clients sont NULL.*\n\n**Exactitude** : les données reflètent la réalité. *Ex : un prix unitaire de -5€ est une erreur.*\n\n**Cohérence** : pas de contradictions entre systèmes ou dans le temps. *Ex : un client 'annulé' avec des commandes 'delivered' après la date d'annulation.*\n\n**Unicité** : pas de doublons non voulus. *Ex : le même client créé deux fois avec des IDs différents.*\n\n**Validité** : respect des formats et règles métier. *Ex : un email sans '@', une date de naissance dans le futur.*\n\n**Timeliness (fraîcheur)** : données disponibles dans le délai requis. *Ex : un rapport de ventes J-7 dans un contexte de décision quotidienne.*",
+    "key_points": [
+      "Complétude, Exactitude, Cohérence, Unicité, Validité, Fraîcheur",
+      "Chaque dimension se mesure avec des métriques concrètes (% de NULL, % de doublons…)",
+      "La qualité des données est un prérequis à toute analyse fiable",
+      "Un profiling régulier (data profiling) permet de surveiller ces dimensions"
+    ]
+  },
+  {
+    "id": "theory_029",
+    "title": "Chargement incrémental vs chargement complet",
+    "difficulty": "medium",
+    "topic_tags": [
+      "pipeline data",
+      "ingestion",
+      "incrémental"
+    ],
+    "description": "Quelle est la différence entre un chargement complet (full load) et un chargement incrémental (incremental load) ? Avantages et inconvénients de chacun.",
+    "solution_text": "**Full load** : on recharge toutes les données à chaque exécution. Simple à implémenter, garantit la cohérence, mais coûteux en temps et ressources pour de gros volumes.\n\n**Incremental load** : on ne charge que les nouvelles données ou les données modifiées depuis le dernier chargement. On utilise une colonne 'watermark' (updated_at, created_at) ou un système de CDC (Change Data Capture).\n\n**Avantages de l'incrémental** : beaucoup plus rapide sur de gros volumes, moins de charge sur la source, réduit les coûts.\n\n**Défis de l'incrémental** : ne détecte pas les suppressions, nécessite une colonne de tracking fiable, logique plus complexe, risque de données manquées si la watermark est peu fiable.",
+    "key_points": [
+      "Full load = simple et fiable mais non scalable",
+      "Incremental = scalable mais nécessite une logique de détection (watermark, CDC)",
+      "CDC (Change Data Capture) capture insertions, updates ET suppressions",
+      "L'idempotence est un critère clé : relancer un pipeline ne doit pas créer de doublons"
+    ]
+  },
+  {
+    "id": "theory_030",
+    "title": "Analyse en entonnoir (funnel analysis)",
+    "difficulty": "medium",
+    "topic_tags": [
+      "funnel",
+      "conversion",
+      "analyse comportementale"
+    ],
+    "description": "Qu'est-ce qu'une analyse en entonnoir (funnel analysis) ? Comment la construire et l'interpréter ?",
+    "solution_text": "Un **funnel** modélise les étapes successives que traverse un utilisateur vers un objectif final (achat, inscription, activation…). Chaque étape perd des utilisateurs.\n\n**Construction** : définir les étapes ordonnées (ex : Visite → Panier → Paiement → Confirmation), compter les utilisateurs à chaque étape, calculer les taux de conversion entre étapes.\n\n**Interprétation** : identifier l'étape avec le plus fort taux d'abandon (drop-off). C'est le point de levier prioritaire.\n\n**Métriques clés** : taux de conversion global, taux de conversion entre étapes, temps médian entre étapes.\n\n**En SQL** : COUNT DISTINCT des users à chaque étape avec des CASE WHEN ou des sous-requêtes filtrées.",
+    "key_points": [
+      "Un funnel suit des utilisateurs à travers des étapes ordonnées",
+      "Le taux de conversion inter-étapes identifie les points de friction",
+      "Le drop-off le plus fort indique la priorité d'optimisation",
+      "Attention à la fenêtre temporelle : compter uniquement les conversions dans X jours"
+    ]
+  },
+  {
+    "id": "theory_031",
+    "title": "Segmentation RFM : Recency, Frequency, Monetary",
+    "difficulty": "medium",
+    "topic_tags": [
+      "RFM",
+      "segmentation client",
+      "CRM"
+    ],
+    "description": "Qu'est-ce que l'analyse RFM ? Comment segmenter les clients avec cette méthode ?",
+    "solution_text": "**RFM** est une méthode de segmentation client basée sur 3 dimensions comportementales :\n\n**Recency (R)** : depuis combien de jours le client a-t-il passé sa dernière commande ? Un R faible = client récent = bon signe.\n\n**Frequency (F)** : combien de commandes a-t-il passées sur la période ? Un F élevé = client fidèle.\n\n**Monetary (M)** : combien a-t-il dépensé au total ? Un M élevé = client à forte valeur.\n\n**Application** : attribuer un score 1-5 à chaque dimension (via NTILE), puis combiner les scores pour créer des segments ('Champions', 'À risque', 'Perdus'…).\n\n**Utilité** : cibler les actions marketing par segment (rétention, réactivation, up-sell).",
+    "key_points": [
+      "R : délai depuis dernier achat (faible = bon)",
+      "F : nombre d'achats (élevé = bon)",
+      "M : montant total dépensé (élevé = bon)",
+      "Les scores RFM guident les actions CRM : fidéliser les champions, réactiver les inactifs"
+    ]
+  },
+  {
+    "id": "theory_032",
+    "title": "DAU, WAU, MAU : métriques d'engagement",
+    "difficulty": "easy",
+    "topic_tags": [
+      "métriques",
+      "engagement",
+      "produit"
+    ],
+    "description": "Que signifient DAU, WAU et MAU ? Comment les interpréter et quelle est l'importance du ratio DAU/MAU ?",
+    "solution_text": "**DAU (Daily Active Users)** : utilisateurs uniques actifs sur une journée.\n**WAU (Weekly Active Users)** : utilisateurs uniques actifs sur 7 jours.\n**MAU (Monthly Active Users)** : utilisateurs uniques actifs sur 30 jours.\n\n**Définition d'un 'utilisateur actif'** : dépend du produit (connexion, action spécifique, achat). Il faut une définition précise et stable.\n\n**Ratio DAU/MAU (Stickiness)** : mesure la fidélité quotidienne. Un ratio de 50% signifie que la moitié des utilisateurs mensuels reviennent chaque jour. Les meilleures apps atteignent 50-70% (ex : réseaux sociaux). Un ratio < 10% indique un faible engagement.\n\n**Attention** : ces métriques ne disent rien sur la qualité de l'usage — il faut les contextualiser avec des métriques de valeur (sessions, actions, revenus).",
+    "key_points": [
+      "DAU/MAU = ratio de stickiness (engagement quotidien sur base mensuelle)",
+      "Définir précisément ce qu'est un 'utilisateur actif' pour chaque produit",
+      "Ces métriques varient selon la nature du produit (app de news vs e-commerce)",
+      "Un DAU/MAU élevé indique une forte habitude d'utilisation"
+    ]
+  },
+  {
+    "id": "theory_033",
+    "title": "Stratégies de déduplication",
+    "difficulty": "medium",
+    "topic_tags": [
+      "déduplication",
+      "qualité des données",
+      "SQL"
+    ],
+    "description": "Quelles sont les principales stratégies pour détecter et supprimer les doublons dans une table ? Donnez des exemples SQL.",
+    "solution_text": "**Détection** : GROUP BY sur les colonnes identifiantes + HAVING COUNT(*) > 1 pour trouver les doublons.\n\n**Stratégie 1 — ROW_NUMBER** : attribuer un rang par groupe de doublons (ORDER BY une colonne de priorité), puis garder rn = 1.\n```sql\nWITH ranked AS (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY email ORDER BY created_at DESC) AS rn\n  FROM customers\n)\nSELECT * FROM ranked WHERE rn = 1\n```\n\n**Stratégie 2 — DISTINCT** : si toutes les colonnes sont identiques, SELECT DISTINCT suffit.\n\n**Stratégie 3 — MIN/MAX d'ID** : GROUP BY sur les colonnes métier, garder MIN(id) ou MAX(id).\n\n**Pandas** : drop_duplicates(subset=['email'], keep='last').",
+    "key_points": [
+      "ROW_NUMBER() OVER (PARTITION BY ...) est la méthode SQL la plus flexible",
+      "Définir d'abord la clé de déduplication (quelles colonnes définissent un doublon)",
+      "Définir la règle de priorité (garder le plus récent, le plus complet, etc.)",
+      "Pandas : drop_duplicates(subset=..., keep='first'/'last')"
+    ]
+  },
+  {
+    "id": "theory_034",
+    "title": "NULL en SQL : logique tri-valuée",
+    "difficulty": "medium",
+    "topic_tags": [
+      "NULL",
+      "logique tri-valuée",
+      "SQL"
+    ],
+    "description": "Comment fonctionne NULL en SQL ? Qu'est-ce que la logique tri-valuée et quels sont les pièges courants ?",
+    "solution_text": "SQL utilise une **logique tri-valuée** : TRUE, FALSE, **UNKNOWN**. Toute comparaison avec NULL retourne UNKNOWN, pas TRUE ni FALSE.\n\n**Pièges courants** :\n- `WHERE col = NULL` → ne retourne jamais de ligne (il faut `IS NULL`)\n- `WHERE col != NULL` → idem\n- `NOT IN (sous-requête avec NULL)` → retourne 0 ligne si la sous-requête contient un NULL\n- `COUNT(col)` ignore les NULL, `COUNT(*)` les compte\n- `AVG(col)` ignore les NULL\n\n**Gestion** :\n- COALESCE(col, valeur_défaut) : retourne le premier non-NULL\n- NULLIF(a, b) : retourne NULL si a = b (utile pour éviter les divisions par zéro)\n- IS NULL / IS NOT NULL pour les filtres",
+    "key_points": [
+      "NULL n'est pas une valeur, c'est l'absence de valeur",
+      "Toute opération arithmétique ou comparaison avec NULL retourne NULL/UNKNOWN",
+      "NOT IN échoue silencieusement si la liste contient un NULL",
+      "COALESCE et NULLIF sont les outils de gestion des NULL les plus courants"
+    ]
+  },
+  {
+    "id": "theory_035",
+    "title": "Cardinalité dans les bases de données",
+    "difficulty": "medium",
+    "topic_tags": [
+      "cardinalité",
+      "relations",
+      "modélisation"
+    ],
+    "description": "Qu'est-ce que la cardinalité dans le contexte des bases de données relationnelles ? Expliquez les relations 1:1, 1:N et N:M avec des exemples.",
+    "solution_text": "La **cardinalité** décrit le nombre de relations possibles entre deux entités.\n\n**1:1 (un à un)** : chaque ligne d'une table correspond à au plus une ligne dans l'autre. *Ex : un employé ↔ son contrat de travail.*\n\n**1:N (un à plusieurs)** : une ligne d'une table peut correspondre à plusieurs lignes dans l'autre. *Ex : un client (1) ↔ plusieurs commandes (N).* C'est la relation la plus courante.\n\n**N:M (plusieurs à plusieurs)** : plusieurs lignes de chaque côté. *Ex : un produit peut être dans plusieurs commandes, et une commande peut contenir plusieurs produits.* On implémente via une table de liaison (order_items).\n\n**Cardinalité des colonnes** : dans un autre sens, désigne le nombre de valeurs distinctes d'une colonne. Une colonne de haute cardinalité (ex : email) convient bien aux index ; une colonne de faible cardinalité (ex : statut) moins.",
+    "key_points": [
+      "1:1, 1:N, N:M sont les trois types de relations",
+      "N:M s'implémente avec une table de liaison (bridge table)",
+      "La cardinalité d'une colonne impacte la pertinence d'un index",
+      "Comprendre les cardinalités est essentiel pour écrire des JOIN corrects"
+    ]
+  },
+  {
+    "id": "theory_036",
+    "title": "Format wide vs format long (tidy data)",
+    "difficulty": "easy",
+    "topic_tags": [
+      "wide",
+      "long",
+      "tidy data",
+      "format"
+    ],
+    "description": "Quelle est la différence entre un format 'wide' et un format 'long' pour un DataFrame ? Quand utiliser chacun ?",
+    "solution_text": "**Format wide (large)** : chaque variable a sa propre colonne. *Ex : une ligne par client avec colonnes jan_sales, feb_sales, mar_sales.* Lisible pour les humains, adapté aux tableaux croisés.\n\n**Format long (tidy)** : chaque observation est une ligne avec une colonne 'variable' et une colonne 'valeur'. *Ex : une ligne par client × mois avec colonnes customer_id, month, sales.* Adapté à la plupart des analyses et à ggplot/seaborn.\n\n**Conversion** :\n- Wide → Long : `pd.melt()` en Pandas, `UNPIVOT` en SQL\n- Long → Wide : `pivot_table()` en Pandas, `PIVOT` ou CASE WHEN en SQL\n\n**Principe Tidy Data (Hadley Wickham)** : chaque variable = une colonne, chaque observation = une ligne, chaque type d'observation = une table.",
+    "key_points": [
+      "Wide = colonnes par variable, Long = une ligne par observation",
+      "pd.melt() passe de wide à long, pivot_table() de long à wide",
+      "Le format long est privilégié pour les analyses et visualisations",
+      "Le format wide est souvent utilisé pour les rapports et tableaux de bord"
+    ]
+  },
+  {
+    "id": "theory_037",
+    "title": "Pandas vs SQL : quand utiliser lequel ?",
+    "difficulty": "medium",
+    "topic_tags": [
+      "Pandas",
+      "SQL",
+      "choix d'outil"
+    ],
+    "description": "Quand préférer Pandas à SQL, et vice versa ? Quels sont les cas où chaque outil est plus adapté ?",
+    "solution_text": "**SQL est préférable pour** :\n- Requêtes sur de très gros volumes (milliards de lignes dans un data warehouse)\n- Jointures complexes et agrégations standards\n- Collaboration avec des équipes non-Python\n- Transformations dans un pipeline dbt/ELT\n- Accès direct aux données sans ETL\n\n**Pandas est préférable pour** :\n- Manipulation avancée de données (reshape, apply, rolling complex)\n- Analyse exploratoire interactive (notebook Jupyter)\n- Intégration avec des librairies Python (visualisation, ML)\n- Petits à moyens datasets (< quelques millions de lignes en mémoire)\n- Prototypage rapide avant de passer à SQL\n\n**En pratique** : les deux sont complémentaires. SQL pour l'extraction et les premières agrégations, Pandas pour les transformations complexes et l'analyse.",
+    "key_points": [
+      "SQL : gros volumes, pipelines, collaboration, entrepôt de données",
+      "Pandas : analyse exploratoire, transformations complexes, ML, notebooks",
+      "Les deux sont complémentaires — un data analyst utilise les deux",
+      "Polars et DuckDB brouillent la frontière (SQL-like sur DataFrames)"
+    ]
+  },
+  {
+    "id": "theory_038",
+    "title": "RGPD pour les analystes de données",
+    "difficulty": "medium",
+    "topic_tags": [
+      "RGPD",
+      "données personnelles",
+      "conformité"
+    ],
+    "description": "Quelles sont les principales obligations du RGPD que doit connaître un analyste de données au quotidien ?",
+    "solution_text": "Le **RGPD (Règlement Général sur la Protection des Données)** encadre le traitement des données personnelles dans l'UE.\n\n**Ce que doit savoir un analyste** :\n- **Minimisation** : ne collecter que les données nécessaires à l'analyse\n- **Finalité** : ne pas utiliser des données pour un usage différent de celui prévu\n- **Durée de conservation** : supprimer les données au-delà de la période autorisée\n- **Anonymisation vs pseudonymisation** : les données anonymisées (non réidentifiables) ne sont plus soumises au RGPD ; les pseudonymisées (avec clé) le restent\n- **Droit à l'effacement** : si un utilisateur demande la suppression, ses données doivent être purgées\n- **Consentement** : base légale du traitement (ou contrat, intérêt légitime…)\n\n**Pratiques concrètes** : ne pas exporter de données perso en clair dans un tableur, utiliser des données de test anonymisées, filtrer les colonnes sensibles.",
+    "key_points": [
+      "Minimisation : ne prendre que les données nécessaires",
+      "Anonymisation ≠ pseudonymisation (les données pseudonymisées restent soumises au RGPD)",
+      "Droit à l'effacement implique une architecture pensée pour la suppression",
+      "Un analyste ne doit pas contourner les contrôles d'accès aux données sensibles"
+    ]
+  },
+  {
+    "id": "theory_039",
+    "title": "Taux de conversion et CTR",
+    "difficulty": "easy",
+    "topic_tags": [
+      "conversion",
+      "CTR",
+      "métriques e-commerce"
+    ],
+    "description": "Définissez le taux de conversion et le CTR (Click-Through Rate). Comment les calculer et les interpréter ?",
+    "solution_text": "**Taux de conversion** : proportion de visiteurs (ou leads) qui réalisent une action cible (achat, inscription, etc.).\n\n`Taux de conversion = (Nombre de conversions / Nombre de visiteurs) × 100`\n\n*Ex : 500 achats sur 10 000 visiteurs = 5% de taux de conversion.*\n\n**CTR (Click-Through Rate)** : proportion d'impressions qui génèrent un clic.\n\n`CTR = (Nombre de clics / Nombre d'impressions) × 100`\n\n*Ex : 200 clics sur 5 000 impressions d'une bannière = 4% de CTR.*\n\n**Interprétation** : ces métriques dépendent fortement du canal, du secteur et du contexte. Un CTR de 2% peut être excellent pour une publicité display et médiocre pour un email. Il faut toujours comparer à un benchmark et suivre l'évolution dans le temps.",
+    "key_points": [
+      "Conversion = conversions / expositions (× 100)",
+      "CTR = clics / impressions (× 100)",
+      "Toujours comparer à un benchmark du secteur et à l'historique",
+      "Un CTR élevé n'implique pas un taux de conversion élevé (qualité vs quantité)"
+    ]
+  },
+  {
+    "id": "theory_040",
+    "title": "Décomposition d'une série temporelle",
+    "difficulty": "medium",
+    "topic_tags": [
+      "série temporelle",
+      "tendance",
+      "saisonnalité"
+    ],
+    "description": "Quels sont les composants d'une série temporelle ? Comment les identifier conceptuellement ?",
+    "solution_text": "Une série temporelle se décompose en général en 4 composants :\n\n**Tendance (Trend)** : direction générale à long terme (croissance, déclin). *Ex : les ventes e-commerce augmentent chaque année.*\n\n**Saisonnalité (Seasonality)** : fluctuations périodiques et répétables (annuelles, hebdomadaires…). *Ex : pics de ventes en décembre, creux en janvier.*\n\n**Cyclicité** : variations à long terme non périodiques liées aux cycles économiques (différente de la saisonnalité).\n\n**Résidu (Noise)** : variation aléatoire inexpliquée par les autres composants.\n\n**Décomposition additive** : Valeur = Tendance + Saisonnalité + Résidu. Adaptée si l'amplitude saisonnière est constante.\n\n**Décomposition multiplicative** : Valeur = Tendance × Saisonnalité × Résidu. Adaptée si l'amplitude saisonnière croît avec le niveau.",
+    "key_points": [
+      "4 composants : tendance, saisonnalité, cyclicité, résidu",
+      "Additive si l'amplitude saisonnière est stable, multiplicative si elle évolue",
+      "Visualiser la série et ses autocorrélations aide à identifier les composants",
+      "Python : statsmodels.tsa.seasonal_decompose() pour décomposer automatiquement"
+    ]
+  },
+  {
+    "id": "theory_041",
+    "title": "Percentile vs quantile : quelle différence ?",
+    "difficulty": "easy",
+    "topic_tags": [
+      "percentile",
+      "quantile",
+      "statistiques descriptives"
+    ],
+    "description": "Quelle est la différence entre un percentile et un quantile ? Donnez des exemples concrets.",
+    "solution_text": "Ce sont deux façons d'exprimer la même chose, avec une échelle différente.\n\n**Quantile** : valeur qui divise la distribution en parts égales. Exprimé entre 0 et 1.\n- Q0.5 = médiane (50% des valeurs en dessous)\n- Q0.25 = 1er quartile\n- Q0.75 = 3e quartile\n\n**Percentile** : même concept, exprimé entre 0 et 100.\n- P50 = médiane\n- P90 = 90e percentile (90% des valeurs sont inférieures)\n\n**En pratique** : le P90 des temps de réponse d'une API signifie que 90% des requêtes répondent en moins de X ms. Les 10% restants (P90-P100) sont les cas lents à optimiser.\n\n**En SQL** : `NTILE(100)` découpe en centiles, `PERCENT_RANK()` donne le rang relatif, `PERCENTILE_CONT()` (non disponible en SQLite standard) retourne la valeur au percentile souhaité.",
+    "key_points": [
+      "Percentile = quantile × 100 (même concept, échelle différente)",
+      "P50 = Q0.5 = médiane",
+      "Les percentiles sont utiles pour les SLAs (P99, P95) et la segmentation",
+      "NTILE(4) en SQL crée des quartiles, NTILE(100) des centiles"
+    ]
+  },
+  {
+    "id": "theory_042",
+    "title": "Bonnes pratiques de conception de dashboard",
+    "difficulty": "medium",
+    "topic_tags": [
+      "dashboard",
+      "dataviz",
+      "communication"
+    ],
+    "description": "Quels sont les principes clés pour concevoir un dashboard efficace ? Quelles erreurs éviter ?",
+    "solution_text": "**Principes clés** :\n1. **Une question = un dashboard** : définir l'objectif avant de choisir les métriques\n2. **Hiérarchie visuelle** : les KPIs les plus importants en haut à gauche (sens de lecture occidental)\n3. **Moins c'est mieux** : éviter la surcharge visuelle (chartjunk). Chaque élément doit avoir un rôle\n4. **Contexte** : toujours afficher une comparaison (vs période précédente, vs objectif, vs moyenne)\n5. **Cohérence** : mêmes couleurs pour mêmes concepts dans tout le dashboard\n6. **Granularité adaptée** : au niveau de décision de l'audience\n\n**Erreurs courantes** :\n- Trop de métriques (dilue l'attention)\n- Graphiques en camembert avec trop de segments\n- Axe Y qui ne commence pas à 0 (trompe sur les variations)\n- Métriques sans unité ni période de référence\n- Données non filtrables alors que l'audience est diverse",
+    "key_points": [
+      "Définir d'abord la question, puis les métriques",
+      "Toujours contextualiser une métrique (benchmark, période précédente, objectif)",
+      "Simplicité > exhaustivité pour un dashboard opérationnel",
+      "Adapter la granularité et le vocabulaire à l'audience"
+    ]
+  },
+  {
+    "id": "theory_043",
+    "title": "Data lineage : traçabilité des données",
+    "difficulty": "medium",
+    "topic_tags": [
+      "data lineage",
+      "gouvernance",
+      "pipeline"
+    ],
+    "description": "Qu'est-ce que le data lineage ? Pourquoi est-ce important et comment le mettre en œuvre ?",
+    "solution_text": "Le **data lineage** (ou lignage des données) désigne la capacité à tracer l'origine d'une donnée, les transformations qu'elle a subies et où elle est consommée.\n\n**Pourquoi c'est important** :\n- **Débogage** : si un chiffre est faux dans un rapport, on peut remonter à la source\n- **Impact analysis** : si on modifie une table source, quels rapports sont affectés ?\n- **Conformité** : prouver l'origine des données pour les audits (RGPD, finance)\n- **Confiance** : les utilisateurs font plus confiance aux données dont ils comprennent l'origine\n\n**Comment l'implémenter** :\n- Outils : dbt (graphe DAG de modèles), Apache Atlas, DataHub, OpenMetadata\n- Conventions de nommage et documentation des modèles\n- Tests de données automatisés (dbt test, Great Expectations)\n\n**Exemple** : `rapport_ventes` ← `fct_orders` ← `stg_orders` ← `raw_orders` (base de prod)",
+    "key_points": [
+      "Data lineage = traçabilité de l'origine à la consommation",
+      "Facilite le débogage et l'analyse d'impact lors de changements",
+      "dbt génère automatiquement un graphe de lineage pour les transformations SQL",
+      "Indispensable pour la gouvernance des données et la confiance des utilisateurs"
+    ]
+  },
+  {
+    "id": "theory_044",
+    "title": "Idempotence dans les pipelines de données",
+    "difficulty": "hard",
+    "topic_tags": [
+      "idempotence",
+      "pipeline",
+      "fiabilité"
+    ],
+    "description": "Qu'est-ce que l'idempotence dans le contexte des pipelines de données ? Pourquoi est-ce un critère essentiel ?",
+    "solution_text": "Un pipeline est **idempotent** si exécuter la même opération plusieurs fois produit le même résultat qu'une seule exécution. Aucun doublon, aucune corruption de données.\n\n**Pourquoi c'est essentiel** : les pipelines échouent et redémarrent. Sans idempotence, une relance crée des doublons ou des erreurs.\n\n**Patterns pour l'idempotence** :\n- **INSERT OR REPLACE / UPSERT** : remplace si l'enregistrement existe déjà\n- **TRUNCATE + INSERT** : vider la table avant de recharger (full load)\n- **Partitionnement par date** : réécrire uniquement la partition concernée\n- **Clé de déduplication** : vérifier l'existence avant d'insérer\n\n**Exemple non-idempotent** : `INSERT INTO table SELECT ... FROM source` → chaque exécution ajoute des lignes.\n\n**Exemple idempotent** : `INSERT OR REPLACE INTO table ...` ou `MERGE INTO table USING source ...`",
+    "key_points": [
+      "Idempotent = relancer N fois donne le même résultat qu'une fois",
+      "Critique pour la fiabilité des pipelines qui échouent et redémarrent",
+      "UPSERT, TRUNCATE+INSERT, partitions par date sont des patterns idempotents",
+      "INSERT sans déduplication n'est pas idempotent"
+    ]
+  },
+  {
+    "id": "theory_045",
+    "title": "Clé surrogate vs clé naturelle",
+    "difficulty": "medium",
+    "topic_tags": [
+      "surrogate key",
+      "natural key",
+      "modélisation"
+    ],
+    "description": "Quelle est la différence entre une clé surrogate et une clé naturelle ? Avantages et inconvénients de chacune.",
+    "solution_text": "**Clé naturelle** : identifiant qui a une signification métier. *Ex : numéro de TVA, email, code produit.*\n\n**Avantages** : déjà présente dans les données source, lisible, évite les jointures pour le débogage.\n**Inconvénients** : peut changer (l'email d'un client peut être modifié), peut être dupliquée entre systèmes, difficile à gérer en cas de fusion de bases.\n\n**Clé surrogate** : identifiant technique généré par la base (INTEGER AUTOINCREMENT, UUID).\n\n**Avantages** : immuable, compact (INTEGER), indépendant des règles métier, facilite les SCD Type 2.\n**Inconvénients** : ne porte pas de sens, nécessite une jointure pour récupérer la clé naturelle.\n\n**En data warehouse** : on préfère les clés surrogates pour les dimensions (surtout avec SCD Type 2 où la même entité peut avoir plusieurs lignes).",
+    "key_points": [
+      "Clé naturelle = signification métier (email, code) ; surrogate = technique (ID auto)",
+      "Les clés naturelles peuvent changer → risque d'intégrité référentielle",
+      "Les surrogates sont immuables et facilitent les SCD Type 2",
+      "En data warehouse, toujours préférer les clés surrogates pour les dimensions"
+    ]
+  },
+  {
+    "id": "theory_046",
+    "title": "CROSS JOIN : utilisations pratiques",
+    "difficulty": "medium",
+    "topic_tags": [
+      "CROSS JOIN",
+      "produit cartésien",
+      "SQL"
+    ],
+    "description": "Qu'est-ce qu'un CROSS JOIN ? Dans quels cas est-il utile malgré le produit cartésien qu'il génère ?",
+    "solution_text": "Un **CROSS JOIN** produit le produit cartésien de deux tables : chaque ligne de A combinée avec chaque ligne de B. Si A a 10 lignes et B 5 lignes, le résultat a 50 lignes.\n\n**Cas d'usage légitimes** :\n1. **Générer toutes les combinaisons** : associer chaque produit à chaque région pour un rapport complet (même si pas de ventes)\n2. **Générer une série de dates** : CROSS JOIN d'une table de jours pour avoir un calendrier complet\n3. **Remplir les trous** : pour un funnel, avoir toutes les combinaisons étape × segment, même vides\n4. **Tests** : générer des cas de test en combinant des paramètres\n\n**Attention** : sur de grandes tables, le produit cartésien peut exploser (1M × 1M = 1 trillion de lignes). Toujours vérifier les cardinalités avant.",
+    "key_points": [
+      "CROSS JOIN = produit cartésien (A × B lignes)",
+      "Utile pour générer des combinaisons exhaustives (rapports sans trous)",
+      "Dangereux sur de grandes tables — vérifier les cardinalités",
+      "Peut remplacer une génération de séquences (dates, IDs) dans SQLite"
+    ]
+  },
+  {
+    "id": "theory_047",
+    "title": "Data profiling : analyser une nouvelle table",
+    "difficulty": "medium",
+    "topic_tags": [
+      "data profiling",
+      "EDA",
+      "qualité des données"
+    ],
+    "description": "Qu'est-ce que le data profiling ? Quelles analyses réaliser en priorité lorsqu'on découvre une nouvelle table ?",
+    "solution_text": "Le **data profiling** est l'analyse préliminaire d'un jeu de données pour comprendre sa structure, sa qualité et son contenu avant toute analyse approfondie.\n\n**Analyses à réaliser** :\n1. **Volume** : COUNT(*), nombre de colonnes\n2. **Valeurs manquantes** : % de NULL par colonne\n3. **Doublons** : y a-t-il une clé primaire effective ? (COUNT vs COUNT DISTINCT)\n4. **Distribution** : MIN, MAX, AVG, médiane pour les numériques ; value_counts() pour les catégorielles\n5. **Cardinalité** : combien de valeurs distinctes par colonne ?\n6. **Plages temporelles** : MIN et MAX des colonnes de date\n7. **Cohérence** : les FK référencent-elles des valeurs existantes ? Les dates sont-elles dans l'ordre ?\n\n**Outils** : pandas-profiling / ydata-profiling génère un rapport HTML automatique, ou SQL avec INFORMATION_SCHEMA.",
+    "key_points": [
+      "Commencer par le volume, les NULL, les doublons et les distributions",
+      "Vérifier les cardinalités et les plages de valeurs",
+      "Identifier les clés primaires effectives et les FK orphelines",
+      "ydata-profiling (Python) automatise le data profiling en une ligne"
+    ]
+  },
+  {
+    "id": "theory_048",
+    "title": "MRR et ARR : métriques SaaS",
+    "difficulty": "medium",
+    "topic_tags": [
+      "MRR",
+      "ARR",
+      "métriques SaaS",
+      "business"
+    ],
+    "description": "Qu'est-ce que le MRR et l'ARR dans un contexte SaaS ? Comment les calculer et pourquoi sont-ils importants ?",
+    "solution_text": "**MRR (Monthly Recurring Revenue)** : revenu récurrent mensuel généré par les abonnements actifs.\n\n`MRR = Σ (montant mensuel de chaque abonnement actif)`\n\n**ARR (Annual Recurring Revenue)** : `ARR = MRR × 12` (pour des abonnements mensuels).\n\n**Composants du MRR** :\n- **New MRR** : nouveaux clients ce mois\n- **Expansion MRR** : upsell/cross-sell sur clients existants\n- **Churned MRR** : MRR perdu par désabonnement\n- **Contraction MRR** : downgrades\n- **Net New MRR** = New + Expansion - Churned - Contraction\n\n**Pourquoi c'est important** : contrairement au revenu one-shot, le MRR est prévisible et reflet de la santé de l'entreprise. Les investisseurs et dirigeants pilotent sur l'ARR.\n\n**Attention** : n'inclure que les revenus récurrents (pas les frais de setup one-time).",
+    "key_points": [
+      "MRR = revenu récurrent mensuel (pas les one-shot)",
+      "ARR = MRR × 12",
+      "Net New MRR = New + Expansion - Churn - Contraction",
+      "Le MRR churn rate = MRR churné / MRR début de période"
+    ]
+  },
+  {
+    "id": "theory_049",
+    "title": "Fenêtre glissante vs fenêtre expansive",
+    "difficulty": "medium",
+    "topic_tags": [
+      "rolling",
+      "expanding",
+      "window",
+      "série temporelle"
+    ],
+    "description": "Quelle est la différence entre une fenêtre glissante (rolling) et une fenêtre expansive (expanding) ? Donnez des exemples d'utilisation.",
+    "solution_text": "**Fenêtre glissante (rolling)** : calcule une métrique sur une fenêtre de taille fixe qui se déplace dans le temps.\n\n*Ex : moyenne des 3 derniers mois → M3 = (M1 + M2 + M3) / 3, M4 = (M2 + M3 + M4) / 3.*\n\nUtile pour : lisser les fluctuations, détecter les tendances à court terme, calculer une moyenne mobile.\n\n**Fenêtre expansive (expanding)** : calcule une métrique depuis le début de la série jusqu'à la ligne courante. La fenêtre grandit à chaque pas.\n\n*Ex : somme cumulative, moyenne depuis le début → toujours plus de données incluses.*\n\nUtile pour : totaux cumulatifs, statistiques 'à date', baseline croissante.\n\n**En SQL** : rolling = `AVG(col) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)` ; expanding = `SUM(col) OVER (ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`.\n\n**En Pandas** : `.rolling(3).mean()` vs `.expanding().sum()`.",
+    "key_points": [
+      "Rolling : fenêtre de taille fixe qui glisse (lissage, moyennes mobiles)",
+      "Expanding : fenêtre qui grandit depuis le début (cumulatifs)",
+      "ROWS BETWEEN 2 PRECEDING AND CURRENT ROW = rolling 3 en SQL",
+      "ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW = expanding en SQL"
+    ]
+  },
+  {
+    "id": "theory_050",
+    "title": "Pipeline de données et DAG",
+    "difficulty": "medium",
+    "topic_tags": [
+      "pipeline",
+      "DAG",
+      "orchestration",
+      "Airflow"
+    ],
+    "description": "Qu'est-ce qu'un pipeline de données ? Qu'est-ce qu'un DAG et pourquoi est-il utilisé pour orchestrer les pipelines ?",
+    "solution_text": "Un **pipeline de données** est une séquence d'étapes automatisées qui extraient, transforment et chargent des données d'une source vers une destination.\n\n**DAG (Directed Acyclic Graph)** : graphe orienté sans cycle. Chaque nœud est une tâche, chaque arc représente une dépendance. 'Acyclique' signifie qu'on ne peut pas revenir à un nœud déjà visité — pas de boucle infinie.\n\n**Pourquoi un DAG ?** :\n- Modélise les dépendances entre tâches (B doit s'exécuter après A)\n- Permet l'exécution parallèle des branches indépendantes\n- Facilite la re-exécution partielle (relancer uniquement les tâches en aval d'un échec)\n- Visualise clairement l'ordre d'exécution\n\n**Outils d'orchestration** : Apache Airflow (DAGs en Python), Prefect, Dagster, dbt (DAG de modèles SQL).\n\n**Exemple** : `extract_sales` → `clean_sales` → `compute_kpis` → `update_dashboard` (avec possibilité de `extract_customers` en parallèle de `extract_sales`).",
+    "key_points": [
+      "DAG = graphe orienté sans cycle = structure idéale pour les dépendances de tâches",
+      "Airflow est l'outil d'orchestration open-source de référence",
+      "Un DAG permet l'exécution parallèle et la re-exécution partielle",
+      "dbt modélise aussi ses transformations SQL comme un DAG"
+    ]
+  }
+]

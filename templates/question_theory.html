@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ q.title }} — DA Interview Prep{% endblock %}
+{% block content %}
+<div class="q-header">
+  <div class="q-nav">
+    <a href="/questions/theory" class="btn-back">← Théorie</a>
+    <div class="q-nav-btns">
+      {% if prev_id %}<a href="/question/theory/{{ prev_id }}" class="btn-nav">← Précédent</a>{% endif %}
+      {% if next_id %}<a href="/question/theory/{{ next_id }}" class="btn-nav">Suivant →</a>{% endif %}
+    </div>
+  </div>
+  <div class="q-title-row">
+    <h1>{{ q.title }}</h1>
+    <span class="badge diff-{{ q.difficulty }}">{{ q.difficulty }}</span>
+  </div>
+  <div class="q-tags">
+    {% for tag in q.topic_tags %}
+    <span class="tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="q-body">
+  <div class="theory-question">
+    {{ q.description | md | safe }}
+  </div>
+
+  <div class="theory-think">
+    Réfléchis à ta réponse, puis révèle la solution.
+  </div>
+
+  <button onclick="toggleAnswer()" class="btn-reveal" id="reveal-btn">Révéler la réponse</button>
+
+  <div id="answer-panel" class="answer-panel hidden">
+    <div class="solution-text">{{ q.solution_text | md | safe }}</div>
+    {% if q.key_points %}
+    <ul class="key-points">
+      {% for pt in q.key_points %}
+      <li>{{ pt }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+
+  <div class="status-bar">
+    <span class="status-bar-label">Statut :</span>
+    <button onclick="setStatus('passed')" class="btn-status btn-status-passed {% if current_status == 'passed' %}active{% endif %}">✓ Réussie</button>
+    <button onclick="setStatus('retry')"  class="btn-status btn-status-retry  {% if current_status == 'retry'  %}active{% endif %}">↺ À refaire</button>
+    {% if current_status %}
+    <button onclick="setStatus(null)" class="btn-status btn-status-delete">× Supprimer</button>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  const CATEGORY = "theory";
+  const QUESTION_ID = "{{ q.id }}";
+
+  function toggleAnswer() {
+    const panel = document.getElementById('answer-panel');
+    const btn = document.getElementById('reveal-btn');
+    if (panel.classList.contains('hidden')) {
+      panel.classList.remove('hidden');
+      btn.textContent = 'Masquer la réponse';
+    } else {
+      panel.classList.add('hidden');
+      btn.textContent = 'Révéler la réponse';
+    }
+  }
+
+  function setStatus(status) {
+    fetch('/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question_id: QUESTION_ID, category: CATEGORY, status })
+    }).then(() => window.location.reload());
+  }
+</script>
+{% endblock %}

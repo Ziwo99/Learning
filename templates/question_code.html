@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ q.title }} — DA Interview Prep{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+{% endblock %}
+{% block content %}
+<div class="q-header">
+  <div class="q-nav">
+    <a href="/questions/{{ category }}" class="btn-back">← {{ category | upper }}</a>
+    <div class="q-nav-btns">
+      {% if prev_id %}<a href="/question/{{ category }}/{{ prev_id }}" class="btn-nav">← Précédent</a>{% endif %}
+      {% if next_id %}<a href="/question/{{ category }}/{{ next_id }}" class="btn-nav">Suivant →</a>{% endif %}
+    </div>
+  </div>
+  <div class="q-title-row">
+    <h1>{{ q.title }}</h1>
+    <span class="badge diff-{{ q.difficulty }}">{{ q.difficulty }}</span>
+  </div>
+  <div class="q-tags">
+    {% for tag in q.topic_tags %}
+    <span class="tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="q-body">
+  <div class="q-desc">
+    {{ q.description | md | safe }}
+  </div>
+
+  {% if setup_note %}
+  <div class="setup-note">
+    <strong>Données disponibles :</strong>
+    <div class="setup-content">{{ setup_note | md | safe }}</div>
+  </div>
+  {% endif %}
+
+  {% if category == 'pandas' %}
+  <div class="pandas-note">
+    <strong>Convention :</strong> assigne ton résultat final à une variable nommée <code>result</code>.
+    Les DataFrames disponibles : <code>customers</code>, <code>products</code>, <code>orders</code>, <code>employees</code>, <code>monthly_sales</code>.
+    Les librairies <code>pd</code> et <code>np</code> sont déjà importées.
+  </div>
+  {% endif %}
+
+  <div class="editor-wrap">
+    <textarea id="code-editor"></textarea>
+  </div>
+
+  <div class="action-bar">
+    <button onclick="runCode()" class="btn-run">Exécuter</button>
+    <button onclick="checkAnswer()" class="btn-check">Vérifier</button>
+    <button onclick="toggleSolution()" class="btn-solution">Solution</button>
+  </div>
+
+  <div id="check-banner" class="check-banner hidden"></div>
+  <div id="result-area" class="result-area hidden"></div>
+
+  <div class="status-bar">
+    <span class="status-bar-label">Statut :</span>
+    <button onclick="setStatus('passed')"  class="btn-status btn-status-passed  {% if current_status == 'passed'  %}active{% endif %}">✓ Réussie</button>
+    <button onclick="setStatus('retry')"   class="btn-status btn-status-retry   {% if current_status == 'retry'   %}active{% endif %}">↺ À refaire</button>
+    {% if current_status %}
+    <button onclick="setStatus(null)" class="btn-status btn-status-delete">× Supprimer</button>
+    {% endif %}
+  </div>
+
+  <div id="solution-panel" class="solution-panel hidden">
+    <h3>Solution</h3>
+    <div id="solution-code-wrap" class="solution-code-wrap">
+      <pre id="solution-code"></pre>
+    </div>
+    <div id="solution-explanation" class="solution-explanation"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="{{ url_for('static', filename='editor.js') }}"></script>
+<script>
+  const CATEGORY = "{{ category }}";
+  const QUESTION_ID = "{{ q.id }}";
+  const CM_MODE = "{{ 'text/x-sql' if category == 'sql' else 'python' }}";
+  initEditor(CM_MODE);
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ category | upper }} — DA Interview Prep{% endblock %}
+{% block content %}
+<div class="list-header">
+  <h1>
+    {% if category == 'sql' %}SQL{% elif category == 'pandas' %}Pandas / Python{% else %}Théorie{% endif %}
+  </h1>
+  <a href="/" class="btn-back">Accueil</a>
+</div>
+
+<div class="filter-bar">
+  <span>Filtrer :</span>
+  <a href="?filter=all"          class="filter-btn {% if filter_mode == 'all'          %}active{% endif %}">Tout</a>
+  <a href="?filter=not_attempted" class="filter-btn {% if filter_mode == 'not_attempted' %}active{% endif %}">Sans statut</a>
+  <a href="?filter=passed"        class="filter-btn {% if filter_mode == 'passed' %}active{% endif %}">✓ Réussie</a>
+  <a href="?filter=retry"         class="filter-btn {% if filter_mode == 'retry'  %}active{% endif %}">↺ À refaire</a>
+</div>
+
+{% if questions %}
+<table class="q-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Titre</th>
+      <th>Niveau</th>
+      <th>Tags</th>
+      <th>Statut</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for q in questions %}
+    <tr onclick="window.location='/question/{{ category }}/{{ q.id }}'" class="q-row">
+      <td class="q-num">{{ loop.index }}</td>
+      <td class="q-title">{{ q.title }}</td>
+      <td><span class="badge diff-{{ q.difficulty }}">{{ q.difficulty }}</span></td>
+      <td class="q-tags">
+        {% for tag in q.topic_tags[:3] %}
+        <span class="tag">{{ tag }}</span>
+        {% endfor %}
+      </td>
+      <td class="q-status">
+        {% set s = progress.get(q.id) %}
+        {% if s == 'passed' %}<span class="status-pass">✓ Réussie</span>
+        {% elif s == 'retry' %}<span class="status-retry">↺ À refaire</span>
+        {% else %}<span class="status-none">—</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-state">Aucune question pour ce filtre.</p>
+{% endif %}
+{% endblock %}

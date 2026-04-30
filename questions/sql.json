@@ -484,7 +484,7 @@
     "description": "Trouvez, pour chaque catégorie de produit, le produit ayant généré le plus de revenu total (quantity * unit_price de la table orders). Colonnes : category, product_name, total_revenue. Si ex-aequo, gardez le premier alphabétiquement.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "WITH product_revenue AS (\n  SELECT\n    p.category,\n    p.name AS product_name,\n    SUM(o.quantity * o.unit_price) AS total_revenue\n  FROM orders o\n  JOIN products p ON o.product_id = p.id\n  GROUP BY p.category, p.name\n),\nranked AS (\n  SELECT *,\n    RANK() OVER (PARTITION BY category ORDER BY total_revenue DESC, product_name ASC) AS rk\n  FROM product_revenue\n)\nSELECT category, product_name, total_revenue\nFROM ranked\nWHERE rk = 1\nORDER BY category",
+    "solution_code": "WITH product_revenue AS (\n  SELECT\n    p.category,\n    p.name AS product_name,\n    SUM(o.quantity * p.unit_price) AS total_revenue\n  FROM orders o\n  JOIN products p ON o.product_id = p.id\n  GROUP BY p.category, p.name\n),\nranked AS (\n  SELECT *,\n    RANK() OVER (PARTITION BY category ORDER BY total_revenue DESC, product_name ASC) AS rk\n  FROM product_revenue\n)\nSELECT category, product_name, total_revenue\nFROM ranked\nWHERE rk = 1\nORDER BY category",
     "explanation": "Deux CTEs chaînées : la première calcule le revenu par produit/catégorie, la seconde range les produits au sein de chaque catégorie. On filtre ensuite rk = 1.",
     "ordered": true
   },

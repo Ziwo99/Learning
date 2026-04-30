@@ -423,63 +423,57 @@
   },
   {
     "id": "theory_022",
-    "title": "Supervised vs Unsupervised Learning",
+    "title": "Quel graphique choisir selon le type d'analyse ?",
     "difficulty": "easy",
     "topic_tags": [
-      "machine learning",
-      "supervised",
-      "unsupervised"
+      "dataviz",
+      "graphiques",
+      "communication"
     ],
-    "description": "Expliquez la différence entre apprentissage supervisé et non-supervisé. Donnez 3 exemples d'algorithmes et de cas d'usage pour chacun.",
-    "solution_text": "Apprentissage supervisé : on entraîne un modèle sur des données étiquetées (on connaît la réponse). Le modèle apprend à prédire l'étiquette pour de nouvelles données.\n\nApprentissage non-supervisé : pas d'étiquettes. Le modèle découvre des structures, patterns ou groupes dans les données.",
+    "description": "Quels sont les principaux types de graphiques et dans quels cas les utiliser ? Quelles erreurs de visualisation éviter ?",
+    "solution_text": "**Bar chart (barres)** : comparer des catégories. *Ex : revenu par catégorie de produit.*\n\n**Line chart (courbe)** : évolution dans le temps. *Ex : chiffre d'affaires mensuel.* Ne pas utiliser pour des catégories sans ordre.\n\n**Scatter plot (nuage de points)** : relation entre deux variables numériques. *Ex : prix vs quantité vendue.*\n\n**Histogram** : distribution d'une variable numérique. *Ex : distribution des salaires.*\n\n**Box plot** : distribution + outliers par groupe. *Ex : salaires par département.*\n\n**Heatmap** : matrice de valeurs, corrélations. *Ex : corrélation entre variables.*\n\n**Pie / donut** : parts d'un tout — uniquement si < 5 catégories et les parts sont très différentes. Souvent remplaçable par un bar chart.\n\n**Erreurs courantes** : axe Y qui ne commence pas à 0, trop de couleurs, légende illisible, graphique 3D inutile.",
     "key_points": [
-      "Supervisé : régression linéaire (prédire un prix), régression logistique (churn oui/non), random forest (classification de clients)",
-      "Non-supervisé : K-Means (segmentation clients), PCA (réduction de dimensions), DBSCAN (détection d'anomalies)",
-      "Supervisé nécessite des données labellisées = coûteux. Non-supervisé explore sans labels",
-      "Semi-supervisé : peu de labels + beaucoup de non-labellisés. Utile quand le labelling est coûteux",
-      "Apprentissage par renforcement : l'agent apprend par essai-erreur avec des récompenses (hors scope DA généralement)",
-      "En DA, l'unsupervised (clustering, anomalie) est très utile pour la segmentation client sans label préexistant"
+      "Bar = comparaison catégories, Line = évolution temporelle, Scatter = corrélation",
+      "Histogram = distribution d'une variable numérique",
+      "Éviter le pie chart sauf < 5 catégories très contrastées",
+      "L'axe Y doit toujours commencer à 0 sur un bar chart"
     ]
   },
   {
     "id": "theory_023",
-    "title": "Overfitting et underfitting",
+    "title": "Comment structurer une demande d'analyse ?",
     "difficulty": "medium",
     "topic_tags": [
-      "machine learning",
-      "overfitting",
-      "régularisation",
-      "validation"
+      "méthodologie",
+      "problem framing",
+      "communication"
     ],
-    "description": "Expliquez ce qu'est l'overfitting et l'underfitting en machine learning. Comment les détecter ? Quelles sont les solutions ?",
-    "solution_text": "Overfitting : le modèle apprend trop bien les données d'entraînement, y compris le bruit. Il performe très bien sur le train set mais mal sur des données nouvelles (mauvaise généralisation).\n\nUnderfitting : le modèle est trop simple pour capturer la structure des données. Il performe mal même sur le train set.",
+    "description": "Lorsqu'un stakeholder vous soumet une demande vague (ex : 'nos ventes baissent, dis-moi pourquoi'), comment la structurer avant de commencer l'analyse ?",
+    "solution_text": "Face à une demande vague, structurez avant de coder :\n\n**1. Clarifier la question** : quelle décision sera prise grâce à cette analyse ? Quelle est la définition exacte des termes ('ventes' = CA, volume, commandes ?).\n\n**2. Définir le périmètre** : quelle période ? Quel marché/produit/segment ? Quelles exclusions ?\n\n**3. Identifier les métriques** : quelles métriques répondent à la question ? Quel est le benchmark de référence ?\n\n**4. Anticiper les livrables** : dashboard ? rapport ponctuel ? présentation ? Pour quelle audience ?\n\n**5. Cadrer les ressources** : quelles données sont disponibles ? Quel délai ?\n\n**Framework utile — les 5 Why** : poser 'pourquoi ?' 5 fois pour remonter à la cause racine plutôt que traiter le symptôme.\n\n**Exemple** : 'Les ventes baissent' → Baissent depuis quand ? Quel canal ? Quel produit ? Vs objectif ou vs période précédente ? La réponse change l'analyse.",
     "key_points": [
-      "Overfitting : train error faible, test error élevée. Le modèle a 'mémorisé' au lieu d'apprendre",
-      "Underfitting : train error élevée ET test error élevée. Biais élevé",
-      "Détection : courbes d'apprentissage (train vs validation error en fonction du volume de données)",
-      "Solutions overfitting : plus de données, régularisation (L1/L2), dropout (réseaux de neurones), réduire la complexité du modèle, cross-validation",
-      "Solutions underfitting : modèle plus complexe, plus de features, moins de régularisation",
-      "Bias-variance tradeoff : modèle simple = haut biais, faible variance. Modèle complexe = faible biais, haute variance"
+      "Toujours clarifier la décision derrière la demande avant d'analyser",
+      "Définir les métriques et leur périmètre précisément (éviter l'ambiguïté)",
+      "Les 5 Why aident à remonter à la cause racine",
+      "Adapter le livrable à l'audience (opérationnel vs direction)"
     ]
   },
   {
     "id": "theory_024",
-    "title": "Régression linéaire : hypothèses et limites",
-    "difficulty": "hard",
+    "title": "Granularité d'une table : qu'est-ce que le grain ?",
+    "difficulty": "medium",
     "topic_tags": [
-      "statistiques",
-      "régression",
-      "machine learning"
+      "modélisation",
+      "grain",
+      "data warehouse",
+      "table de faits"
     ],
-    "description": "Quelles sont les hypothèses fondamentales de la régression linéaire (OLS) ? Comment vérifier qu'elles sont respectées ? Que faire quand elles ne le sont pas ?",
-    "solution_text": "La régression OLS (Ordinary Least Squares) minimise la somme des carrés des résidus. Elle repose sur plusieurs hypothèses qui conditionnent la validité des coefficients et intervalles de confiance.",
+    "description": "Qu'est-ce que le grain d'une table de faits ? Pourquoi est-il crucial de le définir avant de modéliser ? Donnez un exemple.",
+    "solution_text": "Le **grain** d'une table définit ce que représente **une ligne**. C'est la granularité la plus fine de la table.\n\n**Exemple** : une table `orders` peut avoir le grain :\n- Une ligne par commande (grain = commande)\n- Une ligne par produit par commande (grain = ligne de commande)\n- Une ligne par jour par client (grain = jour × client)\n\n**Pourquoi c'est crucial** :\n- Des JOIN entre tables de grains différents produisent des résultats incorrects (duplication ou perte de données)\n- Les agrégations doivent être cohérentes avec le grain\n- Un mauvais grain contraint toutes les analyses futures\n\n**Règle d'or** : définir le grain le plus fin possible et documenter clairement. On peut toujours agréger vers le haut, jamais désagréger vers le bas.\n\n**Test pratique** : poser la question 'qu'est-ce qu'une ligne ici ?' — si la réponse est ambiguë, le grain n'est pas défini.",
     "key_points": [
-      "H1 - Linéarité : la relation entre X et Y est linéaire. Vérifier : scatter plot des résidus vs valeurs prédites",
-      "H2 - Indépendance des résidus : les erreurs ne sont pas autocorrélées. Vérifier : test de Durbin-Watson, plot des résidus dans le temps",
-      "H3 - Homoscédasticité : variance constante des résidus. Vérifier : residual plot (pas de forme d'entonnoir)",
-      "H4 - Normalité des résidus : pour l'inférence statistique (IC, p-values). Vérifier : QQ-plot, test de Shapiro-Wilk",
-      "H5 - Pas de multicolinéarité parfaite entre les X. Vérifier : VIF (Variance Inflation Factor) < 5-10",
-      "Si violations : transformer les variables (log), utiliser une régression robuste, passer à un modèle non-linéaire"
+      "Le grain = ce que représente une ligne dans la table",
+      "Toujours définir le grain avant de modéliser une table de faits",
+      "Des JOIN entre tables de grains différents produisent des doublons ou des pertes",
+      "On agrège du fin vers le grossier, jamais l'inverse"
     ]
   },
   {

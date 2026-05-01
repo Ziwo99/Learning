@@ -548,7 +548,7 @@
     "description": "Trouvez les clients ayant passé au moins 3 commandes ET un revenu total (quantity * unit_price) supérieur à 500€. Colonnes : customer_name, order_count, total_revenue. Triez par total_revenue DESC.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "SELECT\n  c.name AS customer_name,\n  COUNT(o.id) AS order_count,\n  SUM(o.quantity * o.unit_price) AS total_revenue\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nGROUP BY c.id, c.name\nHAVING order_count >= 3\n  AND total_revenue > 500\nORDER BY total_revenue DESC",
+    "solution_code": "SELECT\n  c.name AS customer_name,\n  COUNT(o.id) AS order_count,\n  SUM(o.quantity * p.unit_price) AS total_revenue\nFROM customers c\nJOIN orders o ON c.id = o.customer_id\nJOIN products p ON p.id = o.product_id\nGROUP BY c.id, c.name\nHAVING order_count >= 3\n  AND total_revenue > 500\nORDER BY total_revenue DESC",
     "explanation": "HAVING filtre après l'agrégation, contrairement à WHERE. On peut y utiliser des alias de colonnes calculées dans SQLite (comportement non standard mais supporté).",
     "ordered": true
   },

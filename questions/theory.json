@@ -258,69 +258,6 @@
   },
   {
     "id": "theory_014",
-    "title": "Analyse de cohorte",
-    "difficulty": "medium",
-    "topic_tags": [
-      "métriques",
-      "rétention",
-      "cohorte",
-      "comportement utilisateur"
-    ],
-    "description": "Qu'est-ce qu'une analyse de cohorte ? Comment la construire ? Dans quel contexte l'utiliser ?",
-    "solution_text": "Une analyse de cohorte regroupe des utilisateurs/clients partageant une caractéristique commune sur une période donnée (ex: tous les clients ayant effectué leur premier achat en janvier 2023), puis suit leur comportement dans le temps.",
-    "key_points": [
-      "Cohorte = groupe d'utilisateurs partageant un événement commun dans une fenêtre temporelle (signup, premier achat...)",
-      "Permet de mesurer la rétention : combien de clients du mois M sont encore actifs aux mois M+1, M+2, M+3...",
-      "Visualisation : matrice de rétention (cohortes en lignes, périodes en colonnes, % de rétention en valeurs)",
-      "Différencie l'effet cohorte (comportement d'un groupe spécifique) de l'effet période (tous les groupes affectés en même temps)",
-      "Utile pour évaluer l'impact d'un changement produit : les cohortes post-changement ont-elles une meilleure rétention ?",
-      "Ne pas confondre avec segmentation : une cohorte est définie par le TEMPS d'entrée, un segment par une CARACTÉRISTIQUE"
-    ]
-  },
-  {
-    "id": "theory_015",
-    "title": "KPIs e-commerce : CAC, LTV, Churn, ARPU",
-    "difficulty": "medium",
-    "topic_tags": [
-      "métriques",
-      "KPI",
-      "business",
-      "e-commerce"
-    ],
-    "description": "Définissez et expliquez comment calculer : CAC, LTV (ou CLV), Churn rate et ARPU. Quelle est la relation clé entre LTV et CAC ?",
-    "solution_text": "CAC (Customer Acquisition Cost) : coût total marketing + ventes / nombre de nouveaux clients acquis. Mesure l'efficacité d'acquisition.\n\nLTV (Lifetime Value) : revenu total généré par un client sur toute sa relation avec l'entreprise.\n\nChurn rate : taux de désabonnement. Clients perdus / clients début de période.\n\nARPU (Average Revenue Per User) : revenu / nombre d'utilisateurs actifs.",
-    "key_points": [
-      "LTV > 3×CAC : règle heuristique de santé d'un business SaaS/e-commerce",
-      "LTV simple = ARPU × durée de vie moyenne = ARPU / churn_rate",
-      "Churn rate mensuel de 5% → durée de vie moyenne = 1/0.05 = 20 mois",
-      "Payback period : CAC / (ARPU × marge brute) — nombre de mois pour récupérer le coût d'acquisition",
-      "ARPU vs ARPPU (Average Revenue Per Paying User) : important dans les freemium (tous les users vs users payants)",
-      "Net Revenue Retention (NRR) : inclut expansions et churns. NRR > 100% = croissance sans nouveaux clients"
-    ]
-  },
-  {
-    "id": "theory_016",
-    "title": "Taux de rétention vs taux de churn",
-    "difficulty": "easy",
-    "topic_tags": [
-      "métriques",
-      "rétention",
-      "churn",
-      "KPI"
-    ],
-    "description": "Définissez le taux de rétention et le taux de churn. Comment les calculer ? Quelle est leur relation mathématique ? Quelles sont les nuances importantes ?",
-    "solution_text": "Rétention = clients actifs à la fin de période / clients début de période (excluant nouveaux)\nChurn = clients perdus / clients début de période\n\nRétention + Churn = 100% (dans la définition simple)",
-    "key_points": [
-      "Retention rate = (clients fin - nouveaux clients) / clients début × 100",
-      "Churn rate = clients perdus / clients début × 100",
-      "Revenue churn vs Customer churn : perdre peu de clients mais gros peut être pire que perdre beaucoup de petits",
-      "Churn involontaire (carte expirée) vs churn volontaire (résiliation active) : traitement différent",
-      "Leading indicators du churn : baisse d'utilisation, NPS en baisse, pas de login depuis X jours",
-      "Réduction du churn > acquisition : retenir un client existant coûte 5-7× moins cher que d'en acquérir un nouveau"
-    ]
-  },
-  {
-    "id": "theory_017",
     "title": "merge, join et concat en Pandas",
     "difficulty": "medium",
     "topic_tags": [
@@ -340,7 +277,7 @@
     ]
   },
   {
-    "id": "theory_018",
+    "id": "theory_015",
     "title": "apply, transform et agg en Pandas",
     "difficulty": "medium",
     "topic_tags": [
@@ -361,7 +298,7 @@
     ]
   },
   {
-    "id": "theory_019",
+    "id": "theory_016",
     "title": "Corrélation de Pearson vs Spearman",
     "difficulty": "medium",
     "topic_tags": [
@@ -381,7 +318,7 @@
     ]
   },
   {
-    "id": "theory_020",
+    "id": "theory_017",
     "title": "Biais de sélection et biais de confirmation",
     "difficulty": "hard",
     "topic_tags": [
@@ -401,7 +338,7 @@
     ]
   },
   {
-    "id": "theory_021",
+    "id": "theory_018",
     "title": "Approche méthodologique d'une EDA",
     "difficulty": "medium",
     "topic_tags": [
@@ -422,7 +359,7 @@
     ]
   },
   {
-    "id": "theory_022",
+    "id": "theory_019",
     "title": "Quel graphique choisir selon le type d'analyse ?",
     "difficulty": "easy",
     "topic_tags": [
@@ -440,7 +377,7 @@
     ]
   },
   {
-    "id": "theory_023",
+    "id": "theory_020",
     "title": "Comment structurer une demande d'analyse ?",
     "difficulty": "medium",
     "topic_tags": [
@@ -458,7 +395,7 @@
     ]
   },
   {
-    "id": "theory_024",
+    "id": "theory_021",
     "title": "Granularité d'une table : qu'est-ce que le grain ?",
     "difficulty": "medium",
     "topic_tags": [
@@ -477,7 +414,7 @@
     ]
   },
   {
-    "id": "theory_025",
+    "id": "theory_022",
     "title": "Présenter une analyse à des non-techniciens",
     "difficulty": "medium",
     "topic_tags": [
@@ -499,7 +436,7 @@
     ]
   },
   {
-    "id": "theory_026",
+    "id": "theory_023",
     "title": "ETL vs ELT : quelle différence ?",
     "difficulty": "medium",
     "topic_tags": [
@@ -517,7 +454,7 @@
     ]
   },
   {
-    "id": "theory_027",
+    "id": "theory_024",
     "title": "SCD Type 1, 2 et 3 : dimensions lentement changeantes",
     "difficulty": "hard",
     "topic_tags": [
@@ -535,7 +472,7 @@
     ]
   },
   {
-    "id": "theory_028",
+    "id": "theory_025",
     "title": "Dimensions de la qualité des données",
     "difficulty": "medium",
     "topic_tags": [
@@ -552,7 +489,7 @@
     ]
   },
   {
-    "id": "theory_029",
+    "id": "theory_026",
     "title": "Chargement incrémental vs chargement complet",
     "difficulty": "medium",
     "topic_tags": [
@@ -570,61 +507,7 @@
     ]
   },
   {
-    "id": "theory_030",
-    "title": "Analyse en entonnoir (funnel analysis)",
-    "difficulty": "medium",
-    "topic_tags": [
-      "funnel",
-      "conversion",
-      "analyse comportementale"
-    ],
-    "description": "Qu'est-ce qu'une analyse en entonnoir (funnel analysis) ? Comment la construire et l'interpréter ?",
-    "solution_text": "Un **funnel** modélise les étapes successives que traverse un utilisateur vers un objectif final (achat, inscription, activation…). Chaque étape perd des utilisateurs.\n\n**Construction** : définir les étapes ordonnées (ex : Visite → Panier → Paiement → Confirmation), compter les utilisateurs à chaque étape, calculer les taux de conversion entre étapes.\n\n**Interprétation** : identifier l'étape avec le plus fort taux d'abandon (drop-off). C'est le point de levier prioritaire.\n\n**Métriques clés** : taux de conversion global, taux de conversion entre étapes, temps médian entre étapes.\n\n**En SQL** : COUNT DISTINCT des users à chaque étape avec des CASE WHEN ou des sous-requêtes filtrées.",
-    "key_points": [
-      "Un funnel suit des utilisateurs à travers des étapes ordonnées",
-      "Le taux de conversion inter-étapes identifie les points de friction",
-      "Le drop-off le plus fort indique la priorité d'optimisation",
-      "Attention à la fenêtre temporelle : compter uniquement les conversions dans X jours"
-    ]
-  },
-  {
-    "id": "theory_031",
-    "title": "Segmentation RFM : Recency, Frequency, Monetary",
-    "difficulty": "medium",
-    "topic_tags": [
-      "RFM",
-      "segmentation client",
-      "CRM"
-    ],
-    "description": "Qu'est-ce que l'analyse RFM ? Comment segmenter les clients avec cette méthode ?",
-    "solution_text": "**RFM** est une méthode de segmentation client basée sur 3 dimensions comportementales :\n\n**Recency (R)** : depuis combien de jours le client a-t-il passé sa dernière commande ? Un R faible = client récent = bon signe.\n\n**Frequency (F)** : combien de commandes a-t-il passées sur la période ? Un F élevé = client fidèle.\n\n**Monetary (M)** : combien a-t-il dépensé au total ? Un M élevé = client à forte valeur.\n\n**Application** : attribuer un score 1-5 à chaque dimension (via NTILE), puis combiner les scores pour créer des segments ('Champions', 'À risque', 'Perdus'…).\n\n**Utilité** : cibler les actions marketing par segment (rétention, réactivation, up-sell).",
-    "key_points": [
-      "R : délai depuis dernier achat (faible = bon)",
-      "F : nombre d'achats (élevé = bon)",
-      "M : montant total dépensé (élevé = bon)",
-      "Les scores RFM guident les actions CRM : fidéliser les champions, réactiver les inactifs"
-    ]
-  },
-  {
-    "id": "theory_032",
-    "title": "DAU, WAU, MAU : métriques d'engagement",
-    "difficulty": "easy",
-    "topic_tags": [
-      "métriques",
-      "engagement",
-      "produit"
-    ],
-    "description": "Que signifient DAU, WAU et MAU ? Comment les interpréter et quelle est l'importance du ratio DAU/MAU ?",
-    "solution_text": "**DAU (Daily Active Users)** : utilisateurs uniques actifs sur une journée.\n**WAU (Weekly Active Users)** : utilisateurs uniques actifs sur 7 jours.\n**MAU (Monthly Active Users)** : utilisateurs uniques actifs sur 30 jours.\n\n**Définition d'un 'utilisateur actif'** : dépend du produit (connexion, action spécifique, achat). Il faut une définition précise et stable.\n\n**Ratio DAU/MAU (Stickiness)** : mesure la fidélité quotidienne. Un ratio de 50% signifie que la moitié des utilisateurs mensuels reviennent chaque jour. Les meilleures apps atteignent 50-70% (ex : réseaux sociaux). Un ratio < 10% indique un faible engagement.\n\n**Attention** : ces métriques ne disent rien sur la qualité de l'usage — il faut les contextualiser avec des métriques de valeur (sessions, actions, revenus).",
-    "key_points": [
-      "DAU/MAU = ratio de stickiness (engagement quotidien sur base mensuelle)",
-      "Définir précisément ce qu'est un 'utilisateur actif' pour chaque produit",
-      "Ces métriques varient selon la nature du produit (app de news vs e-commerce)",
-      "Un DAU/MAU élevé indique une forte habitude d'utilisation"
-    ]
-  },
-  {
-    "id": "theory_033",
+    "id": "theory_027",
     "title": "Stratégies de déduplication",
     "difficulty": "medium",
     "topic_tags": [
@@ -642,7 +525,7 @@
     ]
   },
   {
-    "id": "theory_034",
+    "id": "theory_028",
     "title": "NULL en SQL : logique tri-valuée",
     "difficulty": "medium",
     "topic_tags": [
@@ -660,7 +543,7 @@
     ]
   },
   {
-    "id": "theory_035",
+    "id": "theory_029",
     "title": "Cardinalité dans les bases de données",
     "difficulty": "medium",
     "topic_tags": [
@@ -678,7 +561,7 @@
     ]
   },
   {
-    "id": "theory_036",
+    "id": "theory_030",
     "title": "Format wide vs format long (tidy data)",
     "difficulty": "easy",
     "topic_tags": [
@@ -697,7 +580,7 @@
     ]
   },
   {
-    "id": "theory_037",
+    "id": "theory_031",
     "title": "Pandas vs SQL : quand utiliser lequel ?",
     "difficulty": "medium",
     "topic_tags": [
@@ -715,7 +598,7 @@
     ]
   },
   {
-    "id": "theory_038",
+    "id": "theory_032",
     "title": "RGPD pour les analystes de données",
     "difficulty": "medium",
     "topic_tags": [
@@ -733,43 +616,7 @@
     ]
   },
   {
-    "id": "theory_039",
-    "title": "Taux de conversion et CTR",
-    "difficulty": "easy",
-    "topic_tags": [
-      "conversion",
-      "CTR",
-      "métriques e-commerce"
-    ],
-    "description": "Définissez le taux de conversion et le CTR (Click-Through Rate). Comment les calculer et les interpréter ?",
-    "solution_text": "**Taux de conversion** : proportion de visiteurs (ou leads) qui réalisent une action cible (achat, inscription, etc.).\n\n`Taux de conversion = (Nombre de conversions / Nombre de visiteurs) × 100`\n\n*Ex : 500 achats sur 10 000 visiteurs = 5% de taux de conversion.*\n\n**CTR (Click-Through Rate)** : proportion d'impressions qui génèrent un clic.\n\n`CTR = (Nombre de clics / Nombre d'impressions) × 100`\n\n*Ex : 200 clics sur 5 000 impressions d'une bannière = 4% de CTR.*\n\n**Interprétation** : ces métriques dépendent fortement du canal, du secteur et du contexte. Un CTR de 2% peut être excellent pour une publicité display et médiocre pour un email. Il faut toujours comparer à un benchmark et suivre l'évolution dans le temps.",
-    "key_points": [
-      "Conversion = conversions / expositions (× 100)",
-      "CTR = clics / impressions (× 100)",
-      "Toujours comparer à un benchmark du secteur et à l'historique",
-      "Un CTR élevé n'implique pas un taux de conversion élevé (qualité vs quantité)"
-    ]
-  },
-  {
-    "id": "theory_040",
-    "title": "Décomposition d'une série temporelle",
-    "difficulty": "medium",
-    "topic_tags": [
-      "série temporelle",
-      "tendance",
-      "saisonnalité"
-    ],
-    "description": "Quels sont les composants d'une série temporelle ? Comment les identifier conceptuellement ?",
-    "solution_text": "Une série temporelle se décompose en général en 4 composants :\n\n**Tendance (Trend)** : direction générale à long terme (croissance, déclin). *Ex : les ventes e-commerce augmentent chaque année.*\n\n**Saisonnalité (Seasonality)** : fluctuations périodiques et répétables (annuelles, hebdomadaires…). *Ex : pics de ventes en décembre, creux en janvier.*\n\n**Cyclicité** : variations à long terme non périodiques liées aux cycles économiques (différente de la saisonnalité).\n\n**Résidu (Noise)** : variation aléatoire inexpliquée par les autres composants.\n\n**Décomposition additive** : Valeur = Tendance + Saisonnalité + Résidu. Adaptée si l'amplitude saisonnière est constante.\n\n**Décomposition multiplicative** : Valeur = Tendance × Saisonnalité × Résidu. Adaptée si l'amplitude saisonnière croît avec le niveau.",
-    "key_points": [
-      "4 composants : tendance, saisonnalité, cyclicité, résidu",
-      "Additive si l'amplitude saisonnière est stable, multiplicative si elle évolue",
-      "Visualiser la série et ses autocorrélations aide à identifier les composants",
-      "Python : statsmodels.tsa.seasonal_decompose() pour décomposer automatiquement"
-    ]
-  },
-  {
-    "id": "theory_041",
+    "id": "theory_033",
     "title": "Percentile vs quantile : quelle différence ?",
     "difficulty": "easy",
     "topic_tags": [
@@ -787,7 +634,7 @@
     ]
   },
   {
-    "id": "theory_042",
+    "id": "theory_034",
     "title": "Bonnes pratiques de conception de dashboard",
     "difficulty": "medium",
     "topic_tags": [
@@ -805,7 +652,7 @@
     ]
   },
   {
-    "id": "theory_043",
+    "id": "theory_035",
     "title": "Data lineage : traçabilité des données",
     "difficulty": "medium",
     "topic_tags": [
@@ -823,7 +670,7 @@
     ]
   },
   {
-    "id": "theory_044",
+    "id": "theory_036",
     "title": "Idempotence dans les pipelines de données",
     "difficulty": "hard",
     "topic_tags": [
@@ -841,7 +688,7 @@
     ]
   },
   {
-    "id": "theory_045",
+    "id": "theory_037",
     "title": "Clé surrogate vs clé naturelle",
     "difficulty": "medium",
     "topic_tags": [
@@ -859,25 +706,7 @@
     ]
   },
   {
-    "id": "theory_046",
-    "title": "CROSS JOIN : utilisations pratiques",
-    "difficulty": "medium",
-    "topic_tags": [
-      "CROSS JOIN",
-      "produit cartésien",
-      "SQL"
-    ],
-    "description": "Qu'est-ce qu'un CROSS JOIN ? Dans quels cas est-il utile malgré le produit cartésien qu'il génère ?",
-    "solution_text": "Un **CROSS JOIN** produit le produit cartésien de deux tables : chaque ligne de A combinée avec chaque ligne de B. Si A a 10 lignes et B 5 lignes, le résultat a 50 lignes.\n\n**Cas d'usage légitimes** :\n1. **Générer toutes les combinaisons** : associer chaque produit à chaque région pour un rapport complet (même si pas de ventes)\n2. **Générer une série de dates** : CROSS JOIN d'une table de jours pour avoir un calendrier complet\n3. **Remplir les trous** : pour un funnel, avoir toutes les combinaisons étape × segment, même vides\n4. **Tests** : générer des cas de test en combinant des paramètres\n\n**Attention** : sur de grandes tables, le produit cartésien peut exploser (1M × 1M = 1 trillion de lignes). Toujours vérifier les cardinalités avant.",
-    "key_points": [
-      "CROSS JOIN = produit cartésien (A × B lignes)",
-      "Utile pour générer des combinaisons exhaustives (rapports sans trous)",
-      "Dangereux sur de grandes tables — vérifier les cardinalités",
-      "Peut remplacer une génération de séquences (dates, IDs) dans SQLite"
-    ]
-  },
-  {
-    "id": "theory_047",
+    "id": "theory_038",
     "title": "Data profiling : analyser une nouvelle table",
     "difficulty": "medium",
     "topic_tags": [
@@ -895,26 +724,7 @@
     ]
   },
   {
-    "id": "theory_048",
-    "title": "MRR et ARR : métriques SaaS",
-    "difficulty": "medium",
-    "topic_tags": [
-      "MRR",
-      "ARR",
-      "métriques SaaS",
-      "business"
-    ],
-    "description": "Qu'est-ce que le MRR et l'ARR dans un contexte SaaS ? Comment les calculer et pourquoi sont-ils importants ?",
-    "solution_text": "**MRR (Monthly Recurring Revenue)** : revenu récurrent mensuel généré par les abonnements actifs.\n\n`MRR = Σ (montant mensuel de chaque abonnement actif)`\n\n**ARR (Annual Recurring Revenue)** : `ARR = MRR × 12` (pour des abonnements mensuels).\n\n**Composants du MRR** :\n- **New MRR** : nouveaux clients ce mois\n- **Expansion MRR** : upsell/cross-sell sur clients existants\n- **Churned MRR** : MRR perdu par désabonnement\n- **Contraction MRR** : downgrades\n- **Net New MRR** = New + Expansion - Churned - Contraction\n\n**Pourquoi c'est important** : contrairement au revenu one-shot, le MRR est prévisible et reflet de la santé de l'entreprise. Les investisseurs et dirigeants pilotent sur l'ARR.\n\n**Attention** : n'inclure que les revenus récurrents (pas les frais de setup one-time).",
-    "key_points": [
-      "MRR = revenu récurrent mensuel (pas les one-shot)",
-      "ARR = MRR × 12",
-      "Net New MRR = New + Expansion - Churn - Contraction",
-      "Le MRR churn rate = MRR churné / MRR début de période"
-    ]
-  },
-  {
-    "id": "theory_049",
+    "id": "theory_039",
     "title": "Fenêtre glissante vs fenêtre expansive",
     "difficulty": "medium",
     "topic_tags": [
@@ -933,7 +743,7 @@
     ]
   },
   {
-    "id": "theory_050",
+    "id": "theory_040",
     "title": "Pipeline de données et DAG",
     "difficulty": "medium",
     "topic_tags": [

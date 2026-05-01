@@ -1,810 +1,786 @@
 [
   {
     "id": "pandas_001",
-    "title": "Filtrer et trier un DataFrame",
+    "title": "DataFrame vs Series : comprendre la différence",
     "difficulty": "easy",
     "topic_tags": [
-      "boolean indexing",
-      "sort_values",
-      "loc"
+      "DataFrame",
+      "Series",
+      "fondamentaux"
     ],
-    "description": "À partir du DataFrame `orders`, sélectionne uniquement les commandes avec `status == 'completed'` et `quantity >= 2`. Trie par `order_date` décroissant. Garde uniquement les colonnes `id`, `customer_id`, `product_id`, `quantity`, `order_date`. Assigne à `result`.",
-    "setup_note": "DataFrames disponibles : customers, products, orders, employees, monthly_sales. Les dates sont déjà en datetime.",
-    "starter_code": "# Filtre les commandes complétées avec quantity >= 2\nfiltered = orders[(orders['status'] == ) & (orders['quantity'] >= )]\n\n# Sélectionne les colonnes et trie\nresult = filtered[['id', 'customer_id', 'product_id', 'quantity', 'order_date']].sort_values(\n    by='order_date', ascending=\n).reset_index(drop=True)",
-    "solution_code": "filtered = orders[(orders['status'] == 'completed') & (orders['quantity'] >= 2)]\nresult = filtered[['id', 'customer_id', 'product_id', 'quantity', 'order_date']].sort_values(\n    by='order_date', ascending=False\n).reset_index(drop=True)",
-    "explanation": "Le boolean indexing utilise des conditions combinées avec & (ET) ou | (OU). Chaque condition doit être entre parenthèses. sort_values(ascending=False) trie du plus grand au plus petit.",
+    "description": "Créez une Series contenant les revenus des 5 premiers clients de la table `orders` (colonne `unit_price`). Puis affichez son type avec `type()`. Assignez la Series à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "result = orders['unit_price'].head(5)\nprint(type(result))",
+    "explanation": "Une Series est une colonne (1D), un DataFrame est un tableau (2D). orders['unit_price'] retourne une Series ; orders[['unit_price']] retourne un DataFrame.",
     "ordered": true
   },
   {
     "id": "pandas_002",
-    "title": "Groupby et agrégations multiples",
+    "title": "Index : comprendre et réinitialiser",
     "difficulty": "easy",
     "topic_tags": [
-      "groupby",
-      "agg",
-      "reset_index"
+      "Index",
+      "reset_index",
+      "fondamentaux"
     ],
-    "description": "Groupe les `orders` par `status` et calcule pour chaque groupe : le nombre de commandes (`nb_commandes`), la quantité totale (`total_quantity`) et la quantité moyenne (`avg_quantity`, arrondie à 2 décimales). Trie par `nb_commandes` décroissant. Assigne à `result`.",
-    "setup_note": "DataFrame : orders (id, customer_id, product_id, quantity, order_date, status)",
-    "starter_code": "result = orders.groupby('status').agg(\n    nb_commandes=('id', ),\n    total_quantity=('quantity', ),\n    avg_quantity=('quantity', )\n).reset_index()\nresult['avg_quantity'] = result['avg_quantity'].round(2)\nresult = result.sort_values('nb_commandes', ascending=False).reset_index(drop=True)",
-    "solution_code": "result = orders.groupby('status').agg(\n    nb_commandes=('id', 'count'),\n    total_quantity=('quantity', 'sum'),\n    avg_quantity=('quantity', 'mean')\n).reset_index()\nresult['avg_quantity'] = result['avg_quantity'].round(2)\nresult = result.sort_values('nb_commandes', ascending=False).reset_index(drop=True)",
-    "explanation": "La syntaxe agg(nom_col=(colonne_source, fonction)) crée des colonnes nommées en une étape. Les fonctions disponibles : 'count', 'sum', 'mean', 'min', 'max', 'std', etc. reset_index() transforme les index en colonnes.",
+    "description": "Filtrez les commandes avec quantity > 3. Vous remarquerez que l'index conserve les numéros originaux. Réinitialisez l'index pour qu'il commence à 0. Assignez le résultat à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "result = orders[orders['quantity'] > 3].reset_index(drop=True)",
+    "explanation": "Après un filtre, l'index conserve les valeurs originales (ex: 2, 5, 8...). reset_index(drop=True) le remet à 0, 1, 2... drop=True évite d'ajouter l'ancien index comme colonne.",
     "ordered": true
   },
   {
     "id": "pandas_003",
-    "title": "Top 5 clients par revenu (merge + groupby)",
+    "title": "head(), info() et describe() : explorer un DataFrame",
     "difficulty": "easy",
     "topic_tags": [
-      "merge",
-      "groupby",
-      "sort_values",
-      "head"
+      "head",
+      "info",
+      "describe",
+      "exploration"
     ],
-    "description": "Calcule le revenu total par client (revenu = `quantity × unit_price`, toutes commandes). Retourne un DataFrame avec `customer_name` et `total_revenue` (arrondi à 2 décimales), trié par `total_revenue` décroissant, limité aux 5 premiers. Assigne à `result`.",
-    "setup_note": "DataFrames : customers (id, name, ...), orders (customer_id, product_id, quantity, ...), products (id, unit_price, ...)",
-    "starter_code": "# Fusionne orders avec products pour avoir unit_price\ndf = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\n\n# Calcule le revenu par ligne\ndf['revenue'] = df['quantity'] * df['']\n\n# Fusionne avec customers pour avoir les noms\ndf = df.merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\n\n# Agrège et trie\nresult = df.groupby('name')['revenue'].sum().reset_index()\nresult.columns = ['customer_name', 'total_revenue']\nresult['total_revenue'] = result['total_revenue'].round(2)\nresult = result.sort_values('total_revenue', ascending=False).head(5).reset_index(drop=True)",
-    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf = df.merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\nresult = df.groupby('name')['revenue'].sum().reset_index()\nresult.columns = ['customer_name', 'total_revenue']\nresult['total_revenue'] = result['total_revenue'].round(2)\nresult = result.sort_values('total_revenue', ascending=False).head(5).reset_index(drop=True)",
-    "explanation": "merge() est l'équivalent Pandas du JOIN SQL. left_on/right_on permettent de joindre sur des colonnes de noms différents. head(N) retourne les N premières lignes après tri.",
+    "description": "Affichez les 3 premières lignes de `customers`, puis ses informations de structure (types, valeurs non-null), puis le résumé statistique. Assignez les 3 premières lignes à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
+    "starter_code": "",
+    "solution_code": "print(customers.head(3))\nprint(customers.info())\nprint(customers.describe(include='all'))\nresult = customers.head(3)",
+    "explanation": "head(n) affiche les n premières lignes. info() donne les types et les valeurs non-null par colonne. describe() calcule les statistiques descriptives (count, mean, min, max...).",
     "ordered": true
   },
   {
     "id": "pandas_004",
-    "title": "Merge multi-tables (left, inner, outer)",
-    "difficulty": "medium",
+    "title": "Sélectionner une ou plusieurs colonnes",
+    "difficulty": "easy",
     "topic_tags": [
-      "merge",
-      "how=left",
-      "how=outer",
-      "suffixes"
+      "sélection",
+      "colonnes"
     ],
-    "description": "Crée un DataFrame complet avec toutes les commandes (complétées), les noms des clients et des produits. Retourne `order_id`, `customer_name`, `product_name`, `quantity`, `order_date`, `unit_price`, `revenue` (quantity × unit_price, arrondi à 2 décimales). Trie par `order_date`. Assigne à `result`.",
-    "setup_note": "DataFrames : customers, orders, products",
-    "starter_code": "# Filtre les commandes complétées\ncomp = orders[orders['status'] == 'completed'].copy()\n\n# Merge avec customers\ndf = comp.merge(customers[['id', 'name']], left_on='customer_id', right_on='id', how='left')\ndf = df.rename(columns={'name': 'customer_name'})\n\n# Merge avec products\ndf = df.merge(products[['id', 'name', 'unit_price']], left_on='product_id', right_on='id', how='left')\ndf = df.rename(columns={'name': 'product_name'})\n\n# Calcule le revenu et sélectionne les colonnes\ndf['revenue'] = (df['quantity'] * df['unit_price']).round(2)\nresult = df[['id_x', 'customer_name', 'product_name', 'quantity', 'order_date', 'unit_price', 'revenue']]\nresult = result.rename(columns={'id_x': 'order_id'}).sort_values('order_date').reset_index(drop=True)",
-    "solution_code": "comp = orders[orders['status'] == 'completed'].copy()\ndf = comp.merge(customers[['id', 'name']], left_on='customer_id', right_on='id', how='left')\ndf = df.rename(columns={'name': 'customer_name'})\ndf = df.merge(products[['id', 'name', 'unit_price']], left_on='product_id', right_on='id', how='left')\ndf = df.rename(columns={'name': 'product_name'})\ndf['revenue'] = (df['quantity'] * df['unit_price']).round(2)\nresult = df[['id_x', 'customer_name', 'product_name', 'quantity', 'order_date', 'unit_price', 'revenue']]\nresult = result.rename(columns={'id_x': 'order_id'}).sort_values('order_date').reset_index(drop=True)",
-    "explanation": "Après deux merges successifs, les colonnes 'id' se dupliquent en 'id_x' et 'id_y'. rename() renomme les colonnes. how='left' conserve toutes les lignes du DataFrame gauche même sans correspondance.",
+    "description": "Sélectionnez uniquement les colonnes `name` et `city` de la table `customers`. Assignez le résultat à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
+    "starter_code": "",
+    "solution_code": "result = customers[['name', 'city']]",
+    "explanation": "Une seule colonne : customers['name'] → Series. Plusieurs colonnes : customers[['name', 'city']] → DataFrame (double crochet).",
     "ordered": true
   },
   {
     "id": "pandas_005",
-    "title": "Valeurs manquantes : détection et traitement",
+    "title": "Filtrer des lignes avec des conditions",
     "difficulty": "easy",
     "topic_tags": [
-      "isna",
-      "fillna",
-      "dropna",
-      "isnull"
+      "filtrage",
+      "conditions booléennes"
     ],
-    "description": "Dans le DataFrame `employees`, la colonne `manager_id` contient des NaN (pour le CEO). Crée un DataFrame avec `name`, `department`, `salary`, `manager_id` et une colonne `has_manager` (True/False) et `manager_id_filled` (remplace NaN par 0). Assigne à `result`.",
-    "setup_note": "DataFrame : employees (id, name, department, manager_id, salary). manager_id est NaN pour les employés sans manager.",
-    "starter_code": "result = employees[['name', 'department', 'salary', 'manager_id']].copy()\nresult['has_manager'] = result['manager_id'].notna()\nresult['manager_id_filled'] = result['manager_id'].fillna(0).astype(int)\nresult = result.sort_values('name').reset_index(drop=True)",
-    "solution_code": "result = employees[['name', 'department', 'salary', 'manager_id']].copy()\nresult['has_manager'] = result['manager_id'].notna()\nresult['manager_id_filled'] = result['manager_id'].fillna(0).astype(int)\nresult = result.sort_values('name').reset_index(drop=True)",
-    "explanation": "isna() / isnull() : True si NaN. notna() / notnull() : True si pas NaN. fillna(valeur) remplace les NaN. astype(int) convertit en entier (nécessaire car float à cause des NaN). dropna() supprime les lignes avec NaN.",
-    "ordered": true
+    "description": "Filtrez les clients dont le tier est 'gold' ET dont la ville est 'Paris'. Assignez le résultat à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
+    "starter_code": "",
+    "solution_code": "result = customers[(customers['tier'] == 'gold') & (customers['city'] == 'Paris')]",
+    "explanation": "En Pandas, on combine les conditions avec & (ET) et | (OU), et chaque condition est entourée de parenthèses. Ne pas utiliser `and`/`or` Python.",
+    "ordered": false
   },
   {
     "id": "pandas_006",
-    "title": "Pivot table : revenu par catégorie et par mois",
-    "difficulty": "medium",
+    "title": "loc : sélection par label",
+    "difficulty": "easy",
     "topic_tags": [
-      "pivot_table",
-      "pd.to_datetime",
-      "dt.month",
-      "dt.year"
+      "loc",
+      "sélection"
     ],
-    "description": "Crée un tableau croisé (pivot table) avec le revenu mensuel par catégorie de produit. Les lignes = année-mois, les colonnes = catégorie. Valeurs = revenu total arrondi à 2 décimales. Assigne à `result`.",
-    "setup_note": "DataFrames : orders, products",
-    "starter_code": "# Prépare les données\ndf = orders.merge(products[['id', 'category', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf['year_month'] = df['order_date'].dt.to_period('M').astype(str)\n\n# Pivot table\nresult = df.pivot_table(\n    values='revenue',\n    index='year_month',\n    columns='category',\n    aggfunc='sum'\n).round(2)\nresult = result.reset_index()\nresult.columns.name = None",
-    "solution_code": "df = orders.merge(products[['id', 'category', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf['year_month'] = df['order_date'].dt.to_period('M').astype(str)\nresult = df.pivot_table(\n    values='revenue',\n    index='year_month',\n    columns='category',\n    aggfunc='sum'\n).round(2)\nresult = result.reset_index()\nresult.columns.name = None",
-    "explanation": "pivot_table() est l'équivalent Pandas du pivot SQL. values = colonne à agréger, index = lignes, columns = nouvelles colonnes, aggfunc = fonction d'agrégation. fillna(0) remplace les NaN par 0 quand il n'y a pas de données.",
+    "description": "Utilisez `.loc` pour sélectionner les lignes où le statut de commande est 'delivered', et n'afficher que les colonnes `id`, `customer_id` et `status`. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "result = orders.loc[orders['status'] == 'delivered', ['id', 'customer_id', 'status']].reset_index(drop=True)",
+    "explanation": "loc[lignes, colonnes] permet de filtrer lignes et colonnes simultanément par label. La virgule sépare le filtre de lignes (condition booléenne) et la sélection de colonnes.",
     "ordered": false
   },
   {
     "id": "pandas_007",
-    "title": "Moyenne mobile sur 3 mois (rolling)",
-    "difficulty": "medium",
+    "title": "iloc : sélection par position",
+    "difficulty": "easy",
     "topic_tags": [
-      "rolling",
-      "mean",
-      "shift",
-      "window"
+      "iloc",
+      "sélection"
     ],
-    "description": "Calcule la moyenne mobile du chiffre d'affaires sur 3 mois glissants dans `monthly_sales`. Retourne `year`, `month`, `revenue` et `rolling_avg_3m` (arrondi à 2 décimales). Trie par year, month. Assigne à `result`.",
-    "setup_note": "DataFrame : monthly_sales (year, month, revenue, units_sold)",
-    "starter_code": "df = monthly_sales.sort_values(['year', 'month']).reset_index(drop=True)\ndf['rolling_avg_3m'] = df['revenue'].rolling(window=, min_periods=1).mean().round(2)\nresult = df[['year', 'month', 'revenue', 'rolling_avg_3m']]",
-    "solution_code": "df = monthly_sales.sort_values(['year', 'month']).reset_index(drop=True)\ndf['rolling_avg_3m'] = df['revenue'].rolling(window=3, min_periods=1).mean().round(2)\nresult = df[['year', 'month', 'revenue', 'rolling_avg_3m']]",
-    "explanation": "rolling(window=3) crée une fenêtre glissante de 3 éléments. min_periods=1 permet de calculer même quand il y a moins de 3 valeurs (début de série). .mean() applique la moyenne à chaque fenêtre.",
+    "description": "Utilisez `.iloc` pour sélectionner les lignes 5 à 9 (incluses) et les 3 premières colonnes de `orders`. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "result = orders.iloc[5:10, 0:3]",
+    "explanation": "iloc[lignes, colonnes] sélectionne par position entière (comme les slices Python). 5:10 = positions 5,6,7,8,9 ; 0:3 = colonnes 0,1,2.",
     "ordered": true
   },
   {
     "id": "pandas_008",
-    "title": "Apply et lambda sur colonnes",
+    "title": "Créer une nouvelle colonne",
     "difficulty": "easy",
     "topic_tags": [
-      "apply",
-      "lambda",
-      "map"
+      "nouvelle colonne",
+      "calcul"
     ],
-    "description": "Ajoute deux colonnes au DataFrame `customers` : `tier_score` (gold=3, silver=2, bronze=1) et `name_upper` (nom en majuscules). Retourne `name`, `city`, `tier`, `tier_score`, `name_upper`. Trie par `tier_score` décroissant, puis `name`. Assigne à `result`.",
-    "setup_note": "DataFrame : customers (id, name, city, signup_date, tier)",
-    "starter_code": "df = customers.copy()\ndf['tier_score'] = df['tier'].map({'gold': , 'silver': , 'bronze': })\ndf['name_upper'] = df['name'].apply(lambda x: )\nresult = df[['name', 'city', 'tier', 'tier_score', 'name_upper']].sort_values(\n    ['tier_score', 'name'], ascending=[False, True]\n).reset_index(drop=True)",
-    "solution_code": "df = customers.copy()\ndf['tier_score'] = df['tier'].map({'gold': 3, 'silver': 2, 'bronze': 1})\ndf['name_upper'] = df['name'].apply(lambda x: x.upper())\nresult = df[['name', 'city', 'tier', 'tier_score', 'name_upper']].sort_values(\n    ['tier_score', 'name'], ascending=[False, True]\n).reset_index(drop=True)",
-    "explanation": "map() applique un dictionnaire de correspondance sur une colonne. apply(lambda x: ...) applique une fonction à chaque valeur. Pour les opérations sur strings, .str.upper() est plus efficace que apply.",
+    "description": "Créez une colonne `line_revenue` dans orders égale à `quantity * unit_price`. Retournez un DataFrame avec les colonnes id, quantity, unit_price, line_revenue. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id', 'quantity', 'unit_price', 'line_revenue']]",
+    "explanation": "On crée une colonne en l'assignant directement : df['nouvelle'] = expression. Toujours travailler sur une copie (.copy()) pour éviter de modifier le DataFrame original.",
     "ordered": true
   },
   {
     "id": "pandas_009",
-    "title": "Dédoublonnage avec drop_duplicates",
+    "title": "Modifier une colonne existante",
     "difficulty": "easy",
     "topic_tags": [
-      "drop_duplicates",
-      "duplicated",
-      "keep"
+      "modifier colonne",
+      "astype"
     ],
-    "description": "Dans `orders`, plusieurs commandes peuvent avoir la même date pour le même client. Garde uniquement la dernière commande (id le plus élevé) par `(customer_id, order_date)`. Retourne `id`, `customer_id`, `order_date`, `status`. Trie par `customer_id`, `order_date`. Assigne à `result`.",
-    "setup_note": "DataFrame : orders",
-    "starter_code": "df = orders.sort_values(['customer_id', 'order_date', 'id'], ascending=[True, True, False])\nresult = df.drop_duplicates(subset=['customer_id', 'order_date'], keep='first')[['id', 'customer_id', 'order_date', 'status']]\nresult = result.sort_values(['customer_id', 'order_date']).reset_index(drop=True)",
-    "solution_code": "df = orders.sort_values(['customer_id', 'order_date', 'id'], ascending=[True, True, False])\nresult = df.drop_duplicates(subset=['customer_id', 'order_date'], keep='first')[['id', 'customer_id', 'order_date', 'status']]\nresult = result.sort_values(['customer_id', 'order_date']).reset_index(drop=True)",
-    "explanation": "drop_duplicates(subset=[cols], keep='first') garde la première occurrence de chaque combinaison de colonnes. En triant d'abord par id décroissant, 'first' garde l'id le plus grand. keep='last' garderait la dernière, keep=False supprimerait tous les doublons.",
+    "description": "Dans une copie de `products`, mettez tous les noms de produits en majuscules (colonne `name`). Retournez les colonnes id, name, category. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
+    "starter_code": "",
+    "solution_code": "df = products[['id', 'name', 'category']].copy()\ndf['name'] = df['name'].str.upper()\nresult = df",
+    "explanation": "On modifie une colonne en la réassignant : df['col'] = nouvelle_valeur. .str.upper() applique la mise en majuscule sur toute la colonne.",
     "ordered": true
   },
   {
     "id": "pandas_010",
-    "title": "Opérations sur les dates avec .dt",
-    "difficulty": "medium",
+    "title": "Supprimer une colonne avec drop()",
+    "difficulty": "easy",
     "topic_tags": [
-      "pd.to_datetime",
-      "dt.year",
-      "dt.month",
-      "dt.dayofweek",
-      "timedelta"
+      "drop",
+      "colonnes"
     ],
-    "description": "Enrichis `orders` avec des informations temporelles : `year`, `month`, `day_of_week` (0=Lundi...6=Dimanche), `days_since_order` (nombre de jours depuis le 2024-01-01 en utilisant `pd.Timestamp('2024-01-01')`). Retourne ces colonnes + `id`, `status`. Trie par `order_date`. Assigne à `result`.",
-    "setup_note": "DataFrame : orders (order_date est déjà en datetime)",
-    "starter_code": "REF_DATE = pd.Timestamp('2024-01-01')\ndf = orders[['id', 'order_date', 'status']].copy()\ndf['year'] = df['order_date'].dt.year\ndf['month'] = df['order_date'].dt.month\ndf['day_of_week'] = df['order_date'].dt.dayofweek\ndf['days_since_order'] = (REF_DATE - df['order_date']).dt.days\nresult = df.sort_values('order_date').reset_index(drop=True)",
-    "solution_code": "REF_DATE = pd.Timestamp('2024-01-01')\ndf = orders[['id', 'order_date', 'status']].copy()\ndf['year'] = df['order_date'].dt.year\ndf['month'] = df['order_date'].dt.month\ndf['day_of_week'] = df['order_date'].dt.dayofweek\ndf['days_since_order'] = (REF_DATE - df['order_date']).dt.days\nresult = df.sort_values('order_date').reset_index(drop=True)",
-    "explanation": "L'accesseur .dt permet d'extraire des composantes : .dt.year, .dt.month, .dt.day, .dt.dayofweek (0=Lundi). La soustraction de deux Series datetime donne un Timedelta. .dt.days extrait le nombre de jours entiers.",
-    "ordered": true
+    "description": "Supprimez la colonne `signup_date` de `customers`. Assignez le résultat à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
+    "starter_code": "",
+    "solution_code": "result = customers.drop(columns=['signup_date'])",
+    "explanation": "drop(columns=['col']) supprime une ou plusieurs colonnes. Sans inplace=True, il retourne un nouveau DataFrame sans modifier l'original.",
+    "ordered": false
   },
   {
     "id": "pandas_011",
-    "title": "Opérations sur les strings avec .str",
+    "title": "Trier avec sort_values()",
     "difficulty": "easy",
     "topic_tags": [
-      "str.upper",
-      "str.contains",
-      "str.split",
-      "str.strip"
+      "sort_values",
+      "tri"
     ],
-    "description": "À partir de `customers`, crée un DataFrame avec `name`, `first_name` (premier mot du nom), `last_name` (dernier mot), `city_upper` (ville en majuscules) et `is_paris` (True si Paris). Trie par `last_name`. Assigne à `result`.",
-    "setup_note": "DataFrame : customers (id, name, city, tier)",
-    "starter_code": "df = customers[['name', 'city']].copy()\ndf['first_name'] = df['name'].str.split(' ').str[]\ndf['last_name'] = df['name'].str.split(' ').str[]\ndf['city_upper'] = df['city'].str.\ndf['is_paris'] = df['city'].str.contains('')\nresult = df[['name', 'first_name', 'last_name', 'city_upper', 'is_paris']].sort_values('last_name').reset_index(drop=True)",
-    "solution_code": "df = customers[['name', 'city']].copy()\ndf['first_name'] = df['name'].str.split(' ').str[0]\ndf['last_name'] = df['name'].str.split(' ').str[1]\ndf['city_upper'] = df['city'].str.upper()\ndf['is_paris'] = df['city'].str.contains('Paris')\nresult = df[['name', 'first_name', 'last_name', 'city_upper', 'is_paris']].sort_values('last_name').reset_index(drop=True)",
-    "explanation": ".str permet d'appliquer des méthodes string vectorisées sur toute une Series. .str.split(' ').str[0] split chaque valeur puis accède au premier élément. .str.contains() retourne un booléen.",
+    "description": "Triez les produits par prix unitaire décroissant. En cas d'égalité de prix, triez par nom alphabétique. Retournez name, category, unit_price. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
+    "starter_code": "",
+    "solution_code": "result = products[['name', 'category', 'unit_price']].sort_values(['unit_price', 'name'], ascending=[False, True]).reset_index(drop=True)",
+    "explanation": "sort_values() accepte une liste de colonnes et une liste ascending correspondante. False = décroissant, True = croissant.",
     "ordered": true
   },
   {
     "id": "pandas_012",
-    "title": "Détecter les outliers avec IQR",
-    "difficulty": "medium",
+    "title": "Détecter les valeurs manquantes avec isna()",
+    "difficulty": "easy",
     "topic_tags": [
-      "quantile",
-      "IQR",
-      "boolean mask",
-      "outliers"
+      "isna",
+      "valeurs manquantes"
     ],
-    "description": "Identifie les commandes dont le montant (quantity × unit_price) est un outlier selon la méthode IQR (montant < Q1 - 1.5×IQR ou montant > Q3 + 1.5×IQR). Retourne `id`, `customer_id`, `montant`, `is_outlier` (True/False). Trie par `montant` décroissant. Assigne à `result`.",
-    "setup_note": "DataFrames : orders, products",
-    "starter_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['montant'] = (df['quantity'] * df['unit_price']).round(2)\n\nQ1 = df['montant'].quantile(0.25)\nQ3 = df['montant'].quantile(0.75)\nIQR = Q3 - Q1\n\ndf['is_outlier'] = (df['montant'] < Q1 - 1.5 * IQR) | (df['montant'] > Q3 + 1.5 * IQR)\nresult = df[['id_x', 'customer_id', 'montant', 'is_outlier']].rename(columns={'id_x': 'id'})\nresult = result.sort_values('montant', ascending=False).reset_index(drop=True)",
-    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['montant'] = (df['quantity'] * df['unit_price']).round(2)\nQ1 = df['montant'].quantile(0.25)\nQ3 = df['montant'].quantile(0.75)\nIQR = Q3 - Q1\ndf['is_outlier'] = (df['montant'] < Q1 - 1.5 * IQR) | (df['montant'] > Q3 + 1.5 * IQR)\nresult = df[['id_x', 'customer_id', 'montant', 'is_outlier']].rename(columns={'id_x': 'id'})\nresult = result.sort_values('montant', ascending=False).reset_index(drop=True)",
-    "explanation": "La méthode IQR : Q1 = 25e percentile, Q3 = 75e percentile, IQR = Q3 - Q1. Les outliers sont en dehors de [Q1 - 1.5×IQR, Q3 + 1.5×IQR]. C'est la règle de Tukey, plus robuste que la méthode z-score pour les distributions asymétriques.",
-    "ordered": true
+    "description": "Créez artificiellement des NaN dans orders : `df.loc[[0, 3, 7], 'unit_price'] = None`. Puis comptez le nombre de valeurs manquantes par colonne. Assignez le résultat (Series) à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "df = orders.copy()\ndf.loc[[0, 3, 7], 'unit_price'] = None\nresult = df.isna().sum()",
+    "explanation": "isna() retourne un DataFrame booléen (True = NaN). .sum() compte les True par colonne. isna().sum().sum() donne le total global.",
+    "ordered": false
   },
   {
     "id": "pandas_013",
-    "title": "Croissance mensuelle avec pct_change et shift",
-    "difficulty": "medium",
+    "title": "Remplacer les valeurs manquantes avec fillna()",
+    "difficulty": "easy",
     "topic_tags": [
-      "pct_change",
-      "shift",
-      "diff",
-      "rolling"
+      "fillna",
+      "valeurs manquantes"
     ],
-    "description": "Calcule pour `monthly_sales` la croissance MoM en % du chiffre d'affaires. Retourne `year`, `month`, `revenue`, `prev_revenue` (mois précédent) et `mom_pct` (arrondi à 2 décimales, NaN pour le premier mois). Trie par year, month. Assigne à `result`.",
-    "setup_note": "DataFrame : monthly_sales (year, month, revenue, units_sold)",
-    "starter_code": "df = monthly_sales.sort_values(['year', 'month']).reset_index(drop=True)\ndf['prev_revenue'] = df['revenue'].shift(1)\ndf['mom_pct'] = (df['revenue'].pct_change() * 100).round(2)\nresult = df[['year', 'month', 'revenue', 'prev_revenue', 'mom_pct']]",
-    "solution_code": "df = monthly_sales.sort_values(['year', 'month']).reset_index(drop=True)\ndf['prev_revenue'] = df['revenue'].shift(1)\ndf['mom_pct'] = (df['revenue'].pct_change() * 100).round(2)\nresult = df[['year', 'month', 'revenue', 'prev_revenue', 'mom_pct']]",
-    "explanation": "shift(1) décale la série d'une ligne vers le bas (équivalent de LAG(1) en SQL). pct_change() calcule (valeur - valeur_précédente) / valeur_précédente, soit la croissance relative. Multiplier par 100 donne le pourcentage.",
+    "description": "Créez des NaN : `df.loc[[0, 3, 7], 'unit_price'] = None`. Remplacez-les par la moyenne de unit_price. Retournez les colonnes id, unit_price. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "df = orders[['id', 'unit_price']].copy()\ndf.loc[[0, 3, 7], 'unit_price'] = None\nmean_price = df['unit_price'].mean()\ndf['unit_price'] = df['unit_price'].fillna(mean_price)\nresult = df",
+    "explanation": "fillna(valeur) remplace tous les NaN par la valeur spécifiée. On peut aussi passer 'ffill' (valeur précédente) ou 'bfill' (valeur suivante).",
     "ordered": true
   },
   {
     "id": "pandas_014",
-    "title": "Concatenation de DataFrames",
+    "title": "Supprimer les valeurs manquantes avec dropna()",
     "difficulty": "easy",
     "topic_tags": [
-      "pd.concat",
-      "reset_index",
-      "ignore_index"
+      "dropna",
+      "valeurs manquantes"
     ],
-    "description": "Crée un DataFrame des clients premium : les clients `'gold'` ayant commandé un `Laptop Pro` ou un `Monitor 27\"`. Crée également un DataFrame des clients bronze. Concatène-les et ajoute une colonne `group` ('premium' ou 'bronze'). Trie par `group`, `name`. Assigne à `result`.",
-    "setup_note": "DataFrames : customers, orders, products",
-    "starter_code": "# Clients gold avec Laptop ou Monitor\nlaptop_monitor = products[products['name'].isin(['Laptop Pro', 'Monitor 27\"'])]['id']\ngold_customers = orders[orders['product_id'].isin(laptop_monitor)].merge(\n    customers[customers['tier'] == 'gold'][['id', 'name', 'city', 'tier']], left_on='customer_id', right_on='id'\n)[['name', 'city', 'tier']].drop_duplicates()\ngold_customers['group'] = 'premium'\n\n# Clients bronze\nbronze = customers[customers['tier'] == 'bronze'][['name', 'city', 'tier']].copy()\nbronze['group'] = 'bronze'\n\nresult = pd.concat([gold_customers, bronze], ignore_index=True).sort_values(['group', 'name']).reset_index(drop=True)",
-    "solution_code": "laptop_monitor = products[products['name'].isin(['Laptop Pro', 'Monitor 27\"'])]['id']\ngold_customers = orders[orders['product_id'].isin(laptop_monitor)].merge(\n    customers[customers['tier'] == 'gold'][['id', 'name', 'city', 'tier']], left_on='customer_id', right_on='id'\n)[['name', 'city', 'tier']].drop_duplicates()\ngold_customers['group'] = 'premium'\nbronze = customers[customers['tier'] == 'bronze'][['name', 'city', 'tier']].copy()\nbronze['group'] = 'bronze'\nresult = pd.concat([gold_customers, bronze], ignore_index=True).sort_values(['group', 'name']).reset_index(drop=True)",
-    "explanation": "pd.concat([df1, df2]) empile des DataFrames verticalement. ignore_index=True réinitialise les index. isin() filtre les valeurs présentes dans une liste. Contrairement à merge() qui joint horizontalement, concat() joint verticalement.",
+    "description": "Créez des NaN : `df.loc[[0, 3, 7], 'unit_price'] = None`. Supprimez les lignes contenant au moins un NaN. Assignez le résultat à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "df = orders.copy()\ndf.loc[[0, 3, 7], 'unit_price'] = None\nresult = df.dropna().reset_index(drop=True)",
+    "explanation": "dropna() supprime les lignes avec au moins un NaN. dropna(subset=['col']) ne vérifie que certaines colonnes. dropna(how='all') ne supprime que les lignes entièrement vides.",
     "ordered": true
   },
   {
     "id": "pandas_015",
-    "title": "Transform : rang dans chaque groupe",
-    "difficulty": "medium",
+    "title": "Détecter et supprimer les doublons",
+    "difficulty": "easy",
     "topic_tags": [
-      "groupby",
-      "transform",
-      "rank",
-      "ngroup"
+      "duplicated",
+      "drop_duplicates"
     ],
-    "description": "Pour chaque commande, calcule le rang de son montant parmi toutes les commandes du même client (rang 1 = montant le plus élevé). Retourne `id`, `customer_id`, `montant` (quantity × unit_price arrondi à 2 décimales) et `rank_in_customer`. Trie par customer_id, rank_in_customer. Assigne à `result`.",
-    "setup_note": "DataFrames : orders, products",
-    "starter_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['montant'] = (df['quantity'] * df['unit_price']).round(2)\ndf['rank_in_customer'] = df.groupby('customer_id')['montant'].rank(method='dense', ascending=False).astype(int)\nresult = df[['id_x', 'customer_id', 'montant', 'rank_in_customer']].rename(columns={'id_x': 'id'})\nresult = result.sort_values(['customer_id', 'rank_in_customer']).reset_index(drop=True)",
-    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['montant'] = (df['quantity'] * df['unit_price']).round(2)\ndf['rank_in_customer'] = df.groupby('customer_id')['montant'].rank(method='dense', ascending=False).astype(int)\nresult = df[['id_x', 'customer_id', 'montant', 'rank_in_customer']].rename(columns={'id_x': 'id'})\nresult = result.sort_values(['customer_id', 'rank_in_customer']).reset_index(drop=True)",
-    "explanation": "groupby().rank() calcule le rang au sein de chaque groupe sans réduire le nombre de lignes (contrairement à groupby().agg()). method='dense' pas de saut de rang pour les ex-æquo. transform() fait la même chose mais retourne une Series de même taille.",
+    "description": "Créez un DataFrame avec doublons : `df = pd.concat([customers, customers.head(3)])`. Détectez combien de doublons il y a, puis supprimez-les. Assignez le DataFrame sans doublons à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
+    "starter_code": "",
+    "solution_code": "df = pd.concat([customers, customers.head(3)])\nprint('Doublons:', df.duplicated().sum())\nresult = df.drop_duplicates().reset_index(drop=True)",
+    "explanation": "duplicated() retourne True pour les lignes dupliquées (la première occurrence est False). drop_duplicates() garde la première occurrence par défaut. keep='last' garde la dernière.",
     "ordered": true
   },
   {
     "id": "pandas_016",
-    "title": "Melt : passer de wide à long",
-    "difficulty": "medium",
+    "title": "value_counts() et unique()",
+    "difficulty": "easy",
     "topic_tags": [
-      "pd.melt",
-      "pivot",
-      "reshape",
-      "wide_to_long"
+      "value_counts",
+      "unique"
     ],
-    "description": "Crée un DataFrame 'wide' avec le revenu total par catégorie (Electronics, Clothing, Food) en colonnes. Transforme-le ensuite en format 'long' avec pd.melt(), pour obtenir deux colonnes : `category` et `total_revenue`. Trie par `total_revenue` décroissant. Assigne à `result`.",
-    "setup_note": "DataFrames : orders, products",
-    "starter_code": "# Crée le format wide\ndf = orders.merge(products[['id', 'category', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\nwide = df.groupby('category')['revenue'].sum().round(2).reset_index()\nwide = wide.set_index('category').T.reset_index(drop=True)\n\n# Melt vers le format long\nresult = pd.melt(wide, var_name='category', value_name='total_revenue')\nresult = result.sort_values('total_revenue', ascending=False).reset_index(drop=True)",
-    "solution_code": "df = orders.merge(products[['id', 'category', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\nwide = df.groupby('category')['revenue'].sum().round(2).reset_index()\nwide = wide.set_index('category').T.reset_index(drop=True)\nresult = pd.melt(wide, var_name='category', value_name='total_revenue')\nresult = result.sort_values('total_revenue', ascending=False).reset_index(drop=True)",
-    "explanation": "pd.melt() transforme le format wide (colonnes = catégories) en format long (une ligne par catégorie). C'est l'opération inverse de pivot_table(). id_vars = colonnes à garder en identifiants, value_vars = colonnes à transformer en lignes.",
+    "description": "Sur la colonne `status` de orders : (1) comptez les occurrences de chaque statut avec value_counts(), (2) listez les valeurs uniques avec unique(). Assignez le résultat de value_counts() à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "print(orders['status'].unique())\nresult = orders['status'].value_counts().reset_index()\nresult.columns = ['status', 'count']",
+    "explanation": "unique() retourne un tableau numpy des valeurs distinctes. value_counts() retourne une Series triée par fréquence décroissante.",
     "ordered": true
   },
   {
     "id": "pandas_017",
-    "title": "Customer Lifetime Value (CLV) multi-merge",
-    "difficulty": "hard",
+    "title": "Statistiques : mean, sum, min, max",
+    "difficulty": "easy",
     "topic_tags": [
-      "merge",
-      "groupby",
-      "agg",
-      "timedelta",
-      "CLV"
+      "mean",
+      "sum",
+      "min",
+      "max",
+      "statistiques"
     ],
-    "description": "Calcule la CLV de chaque client : revenu total des commandes complétées + nombre de commandes + durée de vie en jours (date dernière commande - date première commande). Retourne `customer_name`, `total_revenue`, `nb_orders`, `lifetime_days`, `avg_revenue_per_day` (arrondi à 4 décimales, 0 si lifetime=0). Trie par total_revenue décroissant. Assigne à `result`.",
-    "setup_note": "DataFrames : customers, orders, products",
-    "starter_code": "# Filtre commandes complétées et calcule le revenu\ncomp = orders[orders['status'] == 'completed'].merge(\n    products[['id', 'unit_price']], left_on='product_id', right_on='id'\n)\ncomp['revenue'] = comp['quantity'] * comp['unit_price']\n\n# Agrège par client\nclv = comp.groupby('customer_id').agg(\n    total_revenue=('revenue', 'sum'),\n    nb_orders=('id_x', 'count'),\n    first_order=('order_date', 'min'),\n    last_order=('order_date', 'max')\n).reset_index()\n\nclv['lifetime_days'] = (clv['last_order'] - clv['first_order']).dt.days\nclv['avg_revenue_per_day'] = (clv['total_revenue'] / clv['lifetime_days'].replace(0, float('nan'))).round(4).fillna(0)\nclv['total_revenue'] = clv['total_revenue'].round(2)\n\n# Join avec les noms des clients\nresult = clv.merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\nresult = result.rename(columns={'name': 'customer_name'})\nresult = result[['customer_name', 'total_revenue', 'nb_orders', 'lifetime_days', 'avg_revenue_per_day']]\nresult = result.sort_values('total_revenue', ascending=False).reset_index(drop=True)",
-    "solution_code": "comp = orders[orders['status'] == 'completed'].merge(\n    products[['id', 'unit_price']], left_on='product_id', right_on='id'\n)\ncomp['revenue'] = comp['quantity'] * comp['unit_price']\nclv = comp.groupby('customer_id').agg(\n    total_revenue=('revenue', 'sum'),\n    nb_orders=('id_x', 'count'),\n    first_order=('order_date', 'min'),\n    last_order=('order_date', 'max')\n).reset_index()\nclv['lifetime_days'] = (clv['last_order'] - clv['first_order']).dt.days\nclv['avg_revenue_per_day'] = (clv['total_revenue'] / clv['lifetime_days'].replace(0, float('nan'))).round(4).fillna(0)\nclv['total_revenue'] = clv['total_revenue'].round(2)\nresult = clv.merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\nresult = result.rename(columns={'name': 'customer_name'})\nresult = result[['customer_name', 'total_revenue', 'nb_orders', 'lifetime_days', 'avg_revenue_per_day']]\nresult = result.sort_values('total_revenue', ascending=False).reset_index(drop=True)",
-    "explanation": "La CLV combine plusieurs métriques. replace(0, NaN) évite la division par zéro, puis fillna(0) remet 0. .dt.days convertit un Timedelta en nombre de jours. Le chaînage d'opérations (method chaining) est idiomatique Pandas.",
-    "ordered": true
+    "description": "Sur la colonne `unit_price` de orders, calculez la moyenne, la somme, le minimum et le maximum. Retournez un DataFrame avec une ligne et les colonnes mean, sum, min, max. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "result = pd.DataFrame([{\n  'mean': round(orders['unit_price'].mean(), 2),\n  'sum': round(orders['unit_price'].sum(), 2),\n  'min': orders['unit_price'].min(),\n  'max': orders['unit_price'].max()\n}])",
+    "explanation": "Ces méthodes s'appliquent directement sur une Series. Sur un DataFrame entier, elles s'appliquent colonne par colonne. describe() donne toutes ces stats en une seule commande.",
+    "ordered": false
   },
   {
     "id": "pandas_018",
-    "title": "Resample : agrégation par période temporelle",
-    "difficulty": "hard",
+    "title": "groupby() : agrégation simple",
+    "difficulty": "easy",
     "topic_tags": [
-      "resample",
-      "pd.to_datetime",
       "groupby",
-      "Grouper"
+      "agrégation"
     ],
-    "description": "Regroupe les commandes par trimestre (Q) et calcule le revenu total et le nombre de commandes par trimestre. Retourne `quarter` (format '2022Q1'), `total_revenue` (arrondi à 2 décimales) et `nb_orders`. Trie par quarter. Assigne à `result`.",
-    "setup_note": "DataFrames : orders, products",
-    "starter_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf = df.set_index('order_date')\n\nquarterly = df.resample('QE').agg(\n    total_revenue=('revenue', 'sum'),\n    nb_orders=('id_x', 'count')\n).reset_index()\n\nquarterly['quarter'] = quarterly['order_date'].dt.to_period('Q').astype(str)\nquarterly['total_revenue'] = quarterly['total_revenue'].round(2)\nresult = quarterly[['quarter', 'total_revenue', 'nb_orders']].sort_values('quarter').reset_index(drop=True)",
-    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf = df.set_index('order_date')\nquarterly = df.resample('QE').agg(\n    total_revenue=('revenue', 'sum'),\n    nb_orders=('id_x', 'count')\n).reset_index()\nquarterly['quarter'] = quarterly['order_date'].dt.to_period('Q').astype(str)\nquarterly['total_revenue'] = quarterly['total_revenue'].round(2)\nresult = quarterly[['quarter', 'total_revenue', 'nb_orders']].sort_values('quarter').reset_index(drop=True)",
-    "explanation": "resample() nécessite un index DatetimeIndex. 'QE' = fin de trimestre (Quarter End). L'alternative est groupby(pd.Grouper(key='order_date', freq='QE')) sans set_index(). to_period('Q') formate en '2022Q1'.",
+    "description": "Calculez le nombre de commandes et le revenu total (quantity * unit_price) par statut de commande. Triez par revenu total décroissant. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.groupby('status').agg(\n  order_count=('id', 'count'),\n  total_revenue=('line_revenue', 'sum')\n).round(2).reset_index().sort_values('total_revenue', ascending=False).reset_index(drop=True)",
+    "explanation": "groupby('col').agg() permet de calculer plusieurs agrégations en une fois. La syntaxe agg(nom=('colonne', 'fonction')) crée des colonnes bien nommées directement.",
     "ordered": true
   },
   {
     "id": "pandas_019",
-    "title": "Corrélation entre variables numériques",
+    "title": "agg() : plusieurs fonctions par colonne",
     "difficulty": "medium",
     "topic_tags": [
-      "corr",
-      "describe",
-      "numeric_only",
-      "heatmap"
+      "agg",
+      "groupby"
     ],
-    "description": "À partir de `monthly_sales`, calcule la matrice de corrélation entre `revenue` et `units_sold`. Retourne également les statistiques descriptives (mean, std, min, max). Concatène : d'abord la corrélation (index = 'revenue', 'units_sold'), puis les stats descriptives (arrondi à 2 décimales). Assigne `result` à la matrice de corrélation uniquement (arrondie à 4 décimales).",
-    "setup_note": "DataFrame : monthly_sales (year, month, revenue, units_sold)",
-    "starter_code": "numeric_cols = monthly_sales[['revenue', 'units_sold']]\n\n# Matrice de corrélation\ncorr_matrix = numeric_cols.corr().round(4)\n\nresult = corr_matrix",
-    "solution_code": "numeric_cols = monthly_sales[['revenue', 'units_sold']]\ncorr_matrix = numeric_cols.corr().round(4)\nresult = corr_matrix",
-    "explanation": ".corr() calcule la corrélation de Pearson entre toutes les paires de colonnes numériques. La matrice est symétrique, la diagonale vaut 1. Une corrélation proche de 1 indique une relation linéaire positive forte. .describe() donne count, mean, std, min, 25%, 50%, 75%, max.",
-    "ordered": false
-  },
-  {
-    "id": "pandas_020",
-    "title": "Agrégation conditionnelle avec np.where et mask",
-    "difficulty": "medium",
-    "topic_tags": [
-      "np.where",
-      "mask",
-      "where",
-      "boolean",
-      "conditional"
-    ],
-    "description": "Dans les `orders`, crée deux colonnes : `revenue` (quantity × unit_price) et `revenue_completed` (même valeur si status='completed', sinon 0). Agrège par client : total_revenue (toutes), total_completed_revenue (completed only), taux de complétion (%). Retourne `customer_id`, `total_revenue`, `total_completed_revenue`, `completion_rate` (arrondi à 1 décimale). Trie par customer_id. Assigne à `result`.",
-    "setup_note": "DataFrames : orders, products",
-    "starter_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf['revenue_completed'] = np.where(df['status'] == 'completed', df['revenue'], 0)\n\nresult = df.groupby('customer_id').agg(\n    total_revenue=('revenue', 'sum'),\n    total_completed_revenue=('revenue_completed', 'sum')\n).reset_index()\nresult['completion_rate'] = (result['total_completed_revenue'] / result['total_revenue'] * 100).round(1)\nresult['total_revenue'] = result['total_revenue'].round(2)\nresult['total_completed_revenue'] = result['total_completed_revenue'].round(2)\nresult = result.sort_values('customer_id').reset_index(drop=True)",
-    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\ndf['revenue_completed'] = np.where(df['status'] == 'completed', df['revenue'], 0)\nresult = df.groupby('customer_id').agg(\n    total_revenue=('revenue', 'sum'),\n    total_completed_revenue=('revenue_completed', 'sum')\n).reset_index()\nresult['completion_rate'] = (result['total_completed_revenue'] / result['total_revenue'] * 100).round(1)\nresult['total_revenue'] = result['total_revenue'].round(2)\nresult['total_completed_revenue'] = result['total_completed_revenue'].round(2)\nresult = result.sort_values('customer_id').reset_index(drop=True)",
-    "explanation": "np.where(condition, valeur_si_vrai, valeur_si_faux) est l'équivalent vectorisé du ternaire. C'est plus rapide que apply(). .mask(condition) remplace les valeurs où la condition est vraie par NaN (ou une valeur spécifiée). .where(condition) fait l'inverse : garde les valeurs où la condition est vraie.",
+    "description": "Pour chaque catégorie de produit, calculez via agg() : le prix moyen, le prix minimum et le prix maximum. Colonnes : category, avg_price, min_price, max_price. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
+    "starter_code": "",
+    "solution_code": "result = products.groupby('category')['unit_price'].agg(\n  avg_price='mean',\n  min_price='min',\n  max_price='max'\n).round(2).reset_index()",
+    "explanation": "agg() avec des mots-clés (avg_price='mean') crée directement des colonnes nommées. On peut aussi passer une liste : agg(['mean', 'min', 'max']) mais ça crée un MultiIndex.",
     "ordered": true
   },
   {
-    "id": "pandas_021",
-    "title": "Filtrer avec query()",
+    "id": "pandas_020",
+    "title": "merge() : jointure entre deux tables",
     "difficulty": "easy",
     "topic_tags": [
-      "query",
-      "filtrage"
+      "merge",
+      "jointure"
     ],
-    "description": "Utilisez la méthode `.query()` pour sélectionner les commandes dont la quantité est supérieure à 3 et dont le statut est 'delivered'. Assignez le résultat à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`, `products`",
+    "description": "Joignez orders avec customers pour récupérer le nom du client (name) et le tier. Retournez les colonnes : order_id (=id de orders), customer_name (=name), tier, quantity, unit_price. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `customers`",
     "starter_code": "",
-    "solution_code": "result = orders.query(\"quantity > 3 and status == 'delivered'\")",
-    "explanation": "query() accepte une expression en chaîne de caractères — lisible et pratique pour des filtres combinés.",
+    "solution_code": "result = orders.merge(customers[['id', 'name', 'tier']], left_on='customer_id', right_on='id')\nresult = result[['id_x', 'name', 'tier', 'quantity', 'unit_price']].rename(columns={'id_x': 'order_id', 'name': 'customer_name'})",
+    "explanation": "merge() joint deux DataFrames sur des colonnes clés. left_on et right_on spécifient les colonnes de jointure quand elles n'ont pas le même nom.",
+    "ordered": false
+  },
+  {
+    "id": "pandas_021",
+    "title": "Jointures inner, left, right, outer",
+    "difficulty": "medium",
+    "topic_tags": [
+      "merge",
+      "inner",
+      "left",
+      "outer"
+    ],
+    "description": "Faites un LEFT JOIN entre customers et orders (sur customer_id). Identifiez les clients sans commande (order_id = NaN). Retournez customer_name (=name), order_id (=id de orders). Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`, `orders`",
+    "starter_code": "",
+    "solution_code": "result = customers[['id', 'name']].merge(\n  orders[['id', 'customer_id']].rename(columns={'id': 'order_id'}),\n  left_on='id', right_on='customer_id',\n  how='left'\n)[['name', 'order_id']].rename(columns={'name': 'customer_name'})\nprint('Clients sans commande:', result['order_id'].isna().sum())",
+    "explanation": "how='left' garde toutes les lignes de gauche (customers) et remplit NaN pour les colonnes de droite quand il n'y a pas de correspondance. how='inner' ne garde que les lignes qui matchent des deux côtés.",
     "ordered": false
   },
   {
     "id": "pandas_022",
-    "title": "value_counts() avec fréquences relatives",
+    "title": "concat() : concaténer des DataFrames",
     "difficulty": "easy",
     "topic_tags": [
-      "value_counts",
-      "normalize"
+      "concat",
+      "concaténation"
     ],
-    "description": "Calculez la fréquence relative (proportion) de chaque statut de commande, arrondie à 2 décimales. Assignez une Series avec les statuts en index à `result`.",
+    "description": "Séparez les commandes 'delivered' et 'pending' dans deux DataFrames, puis recombinez-les avec pd.concat(). Réinitialisez l'index. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "result = orders['status'].value_counts(normalize=True).round(2).reset_index()\nresult.columns = ['status', 'proportion']",
-    "explanation": "normalize=True divise chaque count par le total, retournant des proportions entre 0 et 1. reset_index() convertit en DataFrame pour un affichage tabulaire.",
-    "ordered": true
+    "solution_code": "delivered = orders[orders['status'] == 'delivered']\npending = orders[orders['status'] == 'pending']\nresult = pd.concat([delivered, pending]).reset_index(drop=True)",
+    "explanation": "pd.concat([df1, df2]) empile les DataFrames verticalement. ignore_index=True (ou reset_index) remet l'index à 0. axis=1 concatène horizontalement.",
+    "ordered": false
   },
   {
     "id": "pandas_023",
-    "title": "pd.cut() : segmentation par tranche de prix",
-    "difficulty": "medium",
+    "title": "astype() : convertir les types",
+    "difficulty": "easy",
     "topic_tags": [
-      "pd.cut",
-      "binning",
-      "catégories"
+      "astype",
+      "types"
     ],
-    "description": "Segmentez les produits en 3 tranches de prix : 'low' (0-30), 'medium' (30-70), 'high' (>70). Ajoutez une colonne `price_range` aux produits. Retournez un DataFrame avec name, unit_price, price_range, trié par unit_price.",
-    "setup_note": "DataFrames disponibles : `products`",
+    "description": "Dans orders, la colonne `quantity` est de type int. Convertissez-la en float. Vérifiez le type avant et après. Assignez le DataFrame modifié (toutes colonnes) à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "result = products[['name', 'unit_price']].copy()\nresult['price_range'] = pd.cut(result['unit_price'], bins=[0, 30, 70, float('inf')], labels=['low', 'medium', 'high'])\nresult = result.sort_values('unit_price').reset_index(drop=True)",
-    "explanation": "pd.cut() découpe une variable continue en intervalles. bins définit les bornes, labels les noms des tranches.",
-    "ordered": true
+    "solution_code": "df = orders.copy()\nprint('Avant:', df['quantity'].dtype)\ndf['quantity'] = df['quantity'].astype(float)\nprint('Après:', df['quantity'].dtype)\nresult = df",
+    "explanation": "astype() convertit le type d'une colonne. Types courants : 'int', 'float', 'str', 'bool', 'category'. Si la conversion échoue (ex: '12abc' → int), une erreur est levée.",
+    "ordered": false
   },
   {
     "id": "pandas_024",
-    "title": "pd.qcut() : quartiles de quantité commandée",
-    "difficulty": "medium",
+    "title": "to_datetime() : convertir en dates",
+    "difficulty": "easy",
     "topic_tags": [
-      "pd.qcut",
-      "quantile binning"
+      "to_datetime",
+      "dates"
     ],
-    "description": "Divisez les commandes en 4 quartiles selon la quantité commandée. Ajoutez une colonne `qty_quartile` (Q1, Q2, Q3, Q4). Retournez un DataFrame avec order_id (=id), quantity, qty_quartile, trié par quantity.",
+    "description": "La colonne `order_date` de orders est une chaîne. Convertissez-la en datetime avec pd.to_datetime(). Vérifiez le type avant et après. Assignez le DataFrame avec la colonne convertie à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "result = orders[['id', 'quantity']].copy()\nresult.columns = ['order_id', 'quantity']\nresult['qty_quartile'] = pd.qcut(result['quantity'], q=4, labels=['Q1', 'Q2', 'Q3', 'Q4'], duplicates='drop')\nresult = result.sort_values('quantity').reset_index(drop=True)",
-    "explanation": "pd.qcut() crée des intervalles de taille égale en termes de fréquence (quartiles). duplicates='drop' évite une erreur si plusieurs bornes sont identiques.",
-    "ordered": true
+    "solution_code": "df = orders.copy()\nprint('Avant:', df['order_date'].dtype)\ndf['order_date'] = pd.to_datetime(df['order_date'])\nprint('Après:', df['order_date'].dtype)\nresult = df",
+    "explanation": "pd.to_datetime() convertit des chaînes en objets datetime. Sans conversion, les opérations de date (.dt, comparaisons) ne fonctionnent pas.",
+    "ordered": false
   },
   {
     "id": "pandas_025",
-    "title": "pd.crosstab() : statuts par tier client",
-    "difficulty": "medium",
+    "title": ".dt : extraire année, mois, jour",
+    "difficulty": "easy",
     "topic_tags": [
-      "crosstab",
-      "tableau croisé"
+      ".dt",
+      "dates",
+      "extraction"
     ],
-    "description": "Créez un tableau croisé comptant le nombre de commandes par tier client (lignes) et par statut de commande (colonnes). Assignez le résultat à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`",
+    "description": "Convertissez order_date en datetime, puis extrayez l'année, le mois et le jour dans 3 nouvelles colonnes. Retournez id, order_date, year, month, day. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "merged = orders.merge(customers[['id', 'tier']], left_on='customer_id', right_on='id')\nresult = pd.crosstab(merged['tier'], merged['status'])",
-    "explanation": "pd.crosstab() calcule une table de contingence — utile pour visualiser la distribution d'une variable selon deux catégories.",
-    "ordered": false
+    "solution_code": "df = orders[['id', 'order_date']].copy()\ndf['order_date'] = pd.to_datetime(df['order_date'])\ndf['year'] = df['order_date'].dt.year\ndf['month'] = df['order_date'].dt.month\ndf['day'] = df['order_date'].dt.day\nresult = df",
+    "explanation": ".dt est un accesseur disponible sur les colonnes datetime. Il expose .year, .month, .day, .weekday, .quarter, .hour, etc.",
+    "ordered": true
   },
   {
     "id": "pandas_026",
-    "title": "assign() : ajout de colonnes calculées",
+    "title": ".str : nettoyer du texte",
     "difficulty": "easy",
     "topic_tags": [
-      "assign",
-      "method chaining"
+      ".str",
+      "texte",
+      "nettoyage"
     ],
-    "description": "À partir de la table orders, utilisez `.assign()` pour ajouter une colonne `line_revenue` = quantity * unit_price, puis filtrez les lignes avec line_revenue > 100. Retournez les colonnes id, quantity, unit_price, line_revenue.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Sur la colonne `name` de customers : (1) mettez en minuscules, (2) remplacez les espaces par des underscores, (3) vérifiez si le nom contient 'martin'. Retournez name_clean et contains_martin. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
     "starter_code": "",
-    "solution_code": "result = (orders\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .query('line_revenue > 100')\n  [['id', 'quantity', 'unit_price', 'line_revenue']]\n  .reset_index(drop=True))",
-    "explanation": "assign() crée une nouvelle colonne sans modifier le DataFrame original. Idéal pour le method chaining.",
-    "ordered": false
+    "solution_code": "df = customers[['name']].copy()\ndf['name_clean'] = df['name'].str.lower().str.replace(' ', '_')\ndf['contains_martin'] = df['name'].str.lower().str.contains('martin')\nresult = df[['name_clean', 'contains_martin']]",
+    "explanation": ".str permet d'appliquer des opérations de chaînes vectorisées. On peut les enchaîner : .str.lower().str.strip(). Contrairement à Python pur, .str gère les NaN sans erreur.",
+    "ordered": true
   },
   {
     "id": "pandas_027",
-    "title": "nlargest / nsmallest : top et flop produits",
-    "difficulty": "easy",
+    "title": "apply() : appliquer une fonction sur une colonne",
+    "difficulty": "medium",
     "topic_tags": [
-      "nlargest",
-      "nsmallest"
+      "apply",
+      "lambda"
     ],
-    "description": "Trouvez les 3 produits les plus chers et les 3 produits les moins chers. Retournez un DataFrame avec name et unit_price, les plus chers d'abord puis les moins chers, séparés (concaténés).",
+    "description": "Créez une colonne `price_category` dans products : 'cheap' si unit_price < 30, 'mid' si entre 30 et 70, 'expensive' sinon. Utilisez apply() avec une fonction ou lambda. Retournez name, unit_price, price_category. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `products`",
     "starter_code": "",
-    "solution_code": "top3 = products.nlargest(3, 'unit_price')[['name', 'unit_price']]\nbot3 = products.nsmallest(3, 'unit_price')[['name', 'unit_price']]\nresult = pd.concat([top3, bot3]).reset_index(drop=True)",
-    "explanation": "nlargest/nsmallest sont plus lisibles et efficaces que sort_values().head(). pd.concat joint les deux DataFrames verticalement.",
+    "solution_code": "def categorize(price):\n    if price < 30:\n        return 'cheap'\n    elif price <= 70:\n        return 'mid'\n    else:\n        return 'expensive'\n\ndf = products[['name', 'unit_price']].copy()\ndf['price_category'] = df['unit_price'].apply(categorize)\nresult = df",
+    "explanation": "apply() applique une fonction à chaque élément d'une Series (ou à chaque ligne/colonne d'un DataFrame avec axis=1). Utile pour des logiques complexes difficiles à vectoriser.",
     "ordered": true
   },
   {
     "id": "pandas_028",
-    "title": "isin() : filtrer des catégories spécifiques",
-    "difficulty": "easy",
+    "title": "Boucle vs opération vectorisée",
+    "difficulty": "medium",
     "topic_tags": [
-      "isin",
-      "filtrage"
+      "vectorisation",
+      "performance",
+      "boucle"
     ],
-    "description": "Sélectionnez les produits appartenant aux catégories 'Electronics' ou 'Food'. Retournez un DataFrame avec name, category, unit_price, trié par category puis unit_price.",
-    "setup_note": "DataFrames disponibles : `products`",
+    "description": "Calculez le revenu total (quantity * unit_price) de deux façons : (1) avec une boucle for, (2) avec une opération vectorisée. Comparez les résultats. Assignez le résultat vectorisé (Series) à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "result = products[products['category'].isin(['Electronics', 'Food'])][['name', 'category', 'unit_price']].sort_values(['category', 'unit_price']).reset_index(drop=True)",
-    "explanation": "isin() est plus lisible que plusieurs conditions OR. Son inverse ~df['col'].isin([...]) donne l'exclusion.",
+    "solution_code": "# Boucle (lent, à éviter)\nrevenues_loop = []\nfor _, row in orders.iterrows():\n    revenues_loop.append(row['quantity'] * row['unit_price'])\n\n# Vectorisé (rapide, privilégier)\nresult = orders['quantity'] * orders['unit_price']\n\nprint('Résultats identiques:', list(result) == revenues_loop)",
+    "explanation": "Les opérations vectorisées Pandas/NumPy sont 10 à 100x plus rapides que les boucles Python car elles opèrent sur des tableaux en C. Éviter iterrows() sur de grands datasets.",
     "ordered": true
   },
   {
     "id": "pandas_029",
-    "title": "groupby.filter() : groupes satisfaisant une condition",
+    "title": "SettingWithCopyWarning : comprendre et éviter",
     "difficulty": "medium",
     "topic_tags": [
-      "groupby",
-      "filter"
+      "SettingWithCopyWarning",
+      "copy",
+      "bonne pratique"
     ],
-    "description": "Gardez uniquement les commandes appartenant à des clients dont la somme des revenus dépasse 500€. Retournez le DataFrame filtré avec toutes les colonnes originales de orders, trié par customer_id.",
+    "description": "Filtrez les commandes 'delivered', puis essayez d'ajouter une colonne — vous pourriez voir un warning. Corrigez en utilisant .copy(). Assignez le DataFrame corrigé avec la colonne line_revenue à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "result = (orders\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .groupby('customer_id')\n  .filter(lambda g: g['line_revenue'].sum() > 500)\n  .drop(columns='line_revenue')\n  .sort_values('customer_id')\n  .reset_index(drop=True))",
-    "explanation": "groupby().filter() garde les lignes des groupes satisfaisant une condition. La lambda reçoit chaque groupe (un sous-DataFrame) et doit retourner un booléen.",
+    "solution_code": "# Sans .copy() → risque de SettingWithCopyWarning\n# df_bad = orders[orders['status'] == 'delivered']\n# df_bad['line_revenue'] = df_bad['quantity'] * df_bad['unit_price']  # Warning !\n\n# Avec .copy() → correct\ndf = orders[orders['status'] == 'delivered'].copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id', 'status', 'line_revenue']].reset_index(drop=True)",
+    "explanation": "Ce warning survient quand on modifie une copie implicite d'un DataFrame. La solution : toujours appeler .copy() après un filtre avant de modifier le résultat.",
     "ordered": true
   },
   {
     "id": "pandas_030",
-    "title": "nunique() : diversité produits par client",
+    "title": "to_csv() : exporter un résultat",
     "difficulty": "easy",
     "topic_tags": [
-      "nunique",
-      "groupby"
+      "to_csv",
+      "export"
     ],
-    "description": "Calculez le nombre de produits distincts commandés par chaque client. Retournez un DataFrame avec customer_id et distinct_products, trié par distinct_products DESC.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Calculez le revenu total par catégorie de produit, triez par revenu décroissant, puis exportez le résultat en CSV (sans l'index). Assignez le DataFrame à `result` (l'export est simulé avec to_csv()).",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "result = (orders.groupby('customer_id')['product_id']\n  .nunique()\n  .reset_index()\n  .rename(columns={'product_id': 'distinct_products'})\n  .sort_values('distinct_products', ascending=False)\n  .reset_index(drop=True))",
-    "explanation": "nunique() compte les valeurs uniques par groupe — équivalent à COUNT(DISTINCT) en SQL.",
+    "solution_code": "import io\ndf = orders.merge(products[['id', 'category']], left_on='product_id', right_on='id')\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.groupby('category')['line_revenue'].sum().round(2).reset_index().rename(columns={'line_revenue': 'total_revenue'}).sort_values('total_revenue', ascending=False).reset_index(drop=True)\n# Export réel : result.to_csv('output.csv', index=False)\nbuffer = io.StringIO()\nresult.to_csv(buffer, index=False)\nprint(buffer.getvalue())",
+    "explanation": "to_csv('fichier.csv', index=False) exporte sans la colonne d'index. to_excel('fichier.xlsx', index=False) fonctionne pareil. sep=';' change le séparateur.",
     "ordered": true
   },
   {
     "id": "pandas_031",
-    "title": "cumsum() : revenu cumulé mensuel",
-    "difficulty": "medium",
+    "title": "SQL → Pandas : SELECT et WHERE",
+    "difficulty": "easy",
     "topic_tags": [
-      "cumsum",
-      "dates",
-      "groupby"
+      "SQL",
+      "SELECT",
+      "WHERE",
+      "équivalence"
     ],
-    "description": "À partir de monthly_sales, calculez le revenu cumulé (cumsum) sur toute la période, trié par year et month. Retournez year, month, revenue, cumulative_revenue.",
-    "setup_note": "DataFrames disponibles : `monthly_sales`",
+    "description": "Traduisez cette requête SQL en Pandas :\n```sql\nSELECT name, city, tier\nFROM customers\nWHERE tier = 'gold'\nORDER BY name\n```\nAssignez à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
     "starter_code": "",
-    "solution_code": "result = monthly_sales.sort_values(['year', 'month']).copy()\nresult['cumulative_revenue'] = result['revenue'].cumsum()\nresult = result[['year', 'month', 'revenue', 'cumulative_revenue']].reset_index(drop=True)",
-    "explanation": "cumsum() calcule la somme cumulative ligne par ligne. Après un tri chronologique, on obtient le running total du revenu.",
+    "solution_code": "result = (customers\n  .loc[customers['tier'] == 'gold', ['name', 'city', 'tier']]\n  .sort_values('name')\n  .reset_index(drop=True))",
+    "explanation": "SELECT colonnes → [['col1', 'col2']]. WHERE condition → condition booléenne. ORDER BY → sort_values(). En Pandas, on peut combiner avec loc[condition, colonnes].",
     "ordered": true
   },
   {
     "id": "pandas_032",
-    "title": "diff() : variation de revenu mensuelle",
-    "difficulty": "medium",
+    "title": "SQL → Pandas : GROUP BY",
+    "difficulty": "easy",
     "topic_tags": [
-      "diff",
-      "monthly_sales"
+      "SQL",
+      "GROUP BY",
+      "groupby",
+      "équivalence"
     ],
-    "description": "Calculez la variation absolue de revenu entre chaque mois et le mois précédent (diff). Retournez year, month, revenue, revenue_diff, en ignorant la première ligne (NaN). Triez par year, month.",
-    "setup_note": "DataFrames disponibles : `monthly_sales`",
+    "description": "Traduisez cette requête SQL en Pandas :\n```sql\nSELECT customer_id, COUNT(*) as order_count, SUM(quantity) as total_qty\nFROM orders\nGROUP BY customer_id\nORDER BY order_count DESC\n```\nAssignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "df = monthly_sales.sort_values(['year', 'month']).copy()\ndf['revenue_diff'] = df['revenue'].diff()\nresult = df[['year', 'month', 'revenue', 'revenue_diff']].dropna().reset_index(drop=True)",
-    "explanation": "diff() calcule la différence entre chaque ligne et la précédente. La première ligne devient NaN (pas de ligne précédente). dropna() la supprime.",
+    "solution_code": "result = (orders\n  .groupby('customer_id')\n  .agg(order_count=('id', 'count'), total_qty=('quantity', 'sum'))\n  .reset_index()\n  .sort_values('order_count', ascending=False)\n  .reset_index(drop=True))",
+    "explanation": "GROUP BY → groupby(). COUNT(*) → ('id', 'count'). SUM() → ('col', 'sum'). HAVING → .query() ou filtre après agg(). ORDER BY → sort_values().",
     "ordered": true
   },
   {
     "id": "pandas_033",
-    "title": "clip() : winsorisation des quantités",
+    "title": "SQL → Pandas : JOIN",
     "difficulty": "medium",
     "topic_tags": [
-      "clip",
-      "outliers",
-      "winsorisation"
+      "SQL",
+      "JOIN",
+      "merge",
+      "équivalence"
     ],
-    "description": "Appliquez une winsorisation aux quantités commandées en les bornant au 10e et 90e percentile. Retournez un DataFrame avec id (=order id), quantity, quantity_clipped.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Traduisez cette requête SQL en Pandas :\n```sql\nSELECT c.name, SUM(o.quantity * o.unit_price) as total_revenue\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nGROUP BY c.name\nORDER BY total_revenue DESC\nLIMIT 5\n```\nAssignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `customers`",
     "starter_code": "",
-    "solution_code": "q10 = orders['quantity'].quantile(0.10)\nq90 = orders['quantity'].quantile(0.90)\nresult = orders[['id', 'quantity']].copy()\nresult['quantity_clipped'] = result['quantity'].clip(lower=q10, upper=q90)\nresult = result.rename(columns={'id': 'order_id'})",
-    "explanation": "clip() borne les valeurs entre un minimum et un maximum, sans supprimer les lignes. C'est la winsorisation — utile pour limiter l'impact des outliers.",
-    "ordered": false
+    "solution_code": "result = (orders\n  .merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .groupby('name')['line_revenue']\n  .sum()\n  .round(2)\n  .reset_index()\n  .rename(columns={'name': 'customer_name', 'line_revenue': 'total_revenue'})\n  .sort_values('total_revenue', ascending=False)\n  .head(5)\n  .reset_index(drop=True))",
+    "explanation": "JOIN → merge(). LIMIT 5 → head(5). L'ordre des opérations est important : merge → calcul → groupby → sort → head.",
+    "ordered": true
   },
   {
     "id": "pandas_034",
-    "title": "transform() : part du revenu par client",
-    "difficulty": "hard",
-    "topic_tags": [
-      "transform",
-      "groupby",
-      "pourcentage"
-    ],
-    "description": "Pour chaque commande, calculez sa part dans le revenu total du client (en %). Retournez customer_id, order_id (=id), line_revenue, pct_of_customer (arrondi à 1 décimale). Triez par customer_id, pct_of_customer DESC.",
-    "setup_note": "DataFrames disponibles : `orders`",
-    "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\ndf['customer_total'] = df.groupby('customer_id')['line_revenue'].transform('sum')\ndf['pct_of_customer'] = (df['line_revenue'] / df['customer_total'] * 100).round(1)\nresult = df[['customer_id', 'id', 'line_revenue', 'pct_of_customer']].rename(columns={'id': 'order_id'}).sort_values(['customer_id', 'pct_of_customer'], ascending=[True, False]).reset_index(drop=True)",
-    "explanation": "transform('sum') calcule le total par groupe et l'assigne à chaque ligne du groupe — indispensable pour calculer une part relative sans perdre le niveau ligne.",
-    "ordered": true
-  },
-  {
-    "id": "pandas_035",
-    "title": "merge avec indicator : détecter les lignes non jointes",
+    "title": "Valeurs manquantes : stratégie complète",
     "difficulty": "medium",
     "topic_tags": [
-      "merge",
-      "indicator",
-      "outer join"
-    ],
-    "description": "Faites un outer join entre customers et orders (sur customer_id). Utilisez indicator=True pour identifier les clients sans commande. Retournez un DataFrame avec customer_name (=name), _merge, trié par _merge.",
-    "setup_note": "DataFrames disponibles : `customers`, `orders`",
-    "starter_code": "",
-    "solution_code": "result = customers[['id', 'name']].merge(\n  orders[['customer_id']].drop_duplicates(),\n  left_on='id', right_on='customer_id',\n  how='left', indicator=True\n)[['name', '_merge']].rename(columns={'name': 'customer_name'}).sort_values('_merge').reset_index(drop=True)",
-    "explanation": "indicator=True ajoute une colonne _merge avec 'left_only', 'right_only' ou 'both'. 'left_only' identifie ici les clients sans commande.",
-    "ordered": true
-  },
-  {
-    "id": "pandas_036",
-    "title": "fillna avec la moyenne du groupe",
-    "difficulty": "medium",
-    "topic_tags": [
+      "valeurs manquantes",
+      "isna",
       "fillna",
-      "groupby",
-      "transform"
+      "dropna"
     ],
-    "description": "Dans la table orders, remplacez les valeurs manquantes de unit_price par la moyenne du unit_price des commandes du même customer_id. Retournez un DataFrame avec id, customer_id, unit_price (après remplacement).\n\n**Note** : créez d'abord des NaN artificiels pour pouvoir tester : `df = orders.copy(); df.loc[[0, 5, 10], 'unit_price'] = None`.",
+    "description": "Créez des NaN dans orders : `df.loc[[0,5,10], 'unit_price'] = None` et `df.loc[[2,8], 'status'] = None`. Puis : (1) comptez les NaN par colonne, (2) remplissez unit_price par la médiane, (3) supprimez les lignes où status est NaN. Assignez le DataFrame final à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf.loc[[0, 5, 10], 'unit_price'] = None\ngroup_mean = df.groupby('customer_id')['unit_price'].transform('mean')\ndf['unit_price'] = df['unit_price'].fillna(group_mean)\nresult = df[['id', 'customer_id', 'unit_price']]",
-    "explanation": "transform('mean') calcule la moyenne du groupe et l'aligne sur chaque ligne. fillna utilise ces valeurs pour remplacer les NaN.",
+    "solution_code": "df = orders.copy()\ndf.loc[[0, 5, 10], 'unit_price'] = None\ndf.loc[[2, 8], 'status'] = None\n\nprint('NaN par colonne:')\nprint(df.isna().sum())\n\ndf['unit_price'] = df['unit_price'].fillna(df['unit_price'].median())\ndf = df.dropna(subset=['status'])\nresult = df.reset_index(drop=True)",
+    "explanation": "Stratégie : d'abord analyser (isna().sum()), puis décider colonne par colonne — remplir les numériques par moyenne/médiane, supprimer les lignes avec des catégories manquantes critiques.",
     "ordered": false
   },
   {
-    "id": "pandas_037",
-    "title": "Masque booléen : commandes au-dessus de la moyenne de leur catégorie",
-    "difficulty": "hard",
+    "id": "pandas_035",
+    "title": "Filtrer avec des conditions multiples",
+    "difficulty": "easy",
     "topic_tags": [
-      "boolean mask",
-      "transform",
-      "merge"
+      "filtrage",
+      "conditions",
+      "ET",
+      "OU"
     ],
-    "description": "Identifiez les commandes dont le revenu (quantity * unit_price) est supérieur à la moyenne de revenu des commandes du même produit. Retournez order_id (=id), product_name, line_revenue, avg_product_revenue (arrondi à 2 déc.). Triez par line_revenue DESC.",
-    "setup_note": "DataFrames disponibles : `orders`, `products`",
+    "description": "Filtrez les commandes qui sont 'delivered' OU dont la quantité est supérieure à 4. Puis parmi celles-ci, gardez uniquement celles avec un unit_price > 50. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "df = orders.merge(products[['id', 'name']], left_on='product_id', right_on='id', suffixes=('_order', '_product'))\ndf['line_revenue'] = df['quantity'] * df['unit_price']\ndf['avg_product_revenue'] = df.groupby('product_id')['line_revenue'].transform('mean').round(2)\nmask = df['line_revenue'] > df['avg_product_revenue']\nresult = df[mask][['id_order', 'name', 'line_revenue', 'avg_product_revenue']].rename(columns={'id_order': 'order_id', 'name': 'product_name'}).sort_values('line_revenue', ascending=False).reset_index(drop=True)",
-    "explanation": "transform('mean') aligne la moyenne du groupe sur chaque ligne. Le masque booléen filtre ensuite les lignes dépassant cette moyenne.",
+    "solution_code": "mask1 = (orders['status'] == 'delivered') | (orders['quantity'] > 4)\nmask2 = orders['unit_price'] > 50\nresult = orders[mask1 & mask2].reset_index(drop=True)",
+    "explanation": "& = ET, | = OU, ~ = NON. Chaque condition doit être entre parenthèses. Stocker les masques dans des variables rend le code plus lisible.",
+    "ordered": false
+  },
+  {
+    "id": "pandas_036",
+    "title": "groupby() multi-colonnes",
+    "difficulty": "medium",
+    "topic_tags": [
+      "groupby",
+      "multi-colonnes"
+    ],
+    "description": "Calculez le revenu total (quantity * unit_price) par statut de commande ET par année (extraite de order_date). Colonnes : status, year, total_revenue. Triez par year, total_revenue DESC. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
+    "starter_code": "",
+    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\ndf['year'] = pd.to_datetime(df['order_date']).dt.year\nresult = (df.groupby(['status', 'year'])['line_revenue']\n  .sum().round(2).reset_index()\n  .rename(columns={'line_revenue': 'total_revenue'})\n  .sort_values(['year', 'total_revenue'], ascending=[True, False])\n  .reset_index(drop=True))",
+    "explanation": "groupby() accepte une liste de colonnes. Le résultat est un MultiIndex que reset_index() aplatit en colonnes normales.",
+    "ordered": true
+  },
+  {
+    "id": "pandas_037",
+    "title": "merge() : trois tables",
+    "difficulty": "medium",
+    "topic_tags": [
+      "merge",
+      "jointures multiples"
+    ],
+    "description": "Joignez orders, customers et products pour obtenir : order_id, customer_name, product_name, quantity, unit_price, line_revenue. Triez par line_revenue DESC. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `customers`, `products`",
+    "starter_code": "",
+    "solution_code": "df = (orders\n  .merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\n  .merge(products[['id', 'name']], left_on='product_id', right_on='id', suffixes=('_customer', '_product'))\n)\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id', 'name_customer', 'name_product', 'quantity', 'unit_price', 'line_revenue']].rename(columns={'id': 'order_id', 'name_customer': 'customer_name', 'name_product': 'product_name'}).sort_values('line_revenue', ascending=False).reset_index(drop=True)",
+    "explanation": "On enchaîne les merge() pour joindre 3 tables. suffixes=('_x', '_y') gère les colonnes de même nom (ici 'name'). L'ordre des jointures n'affecte pas le résultat final.",
     "ordered": true
   },
   {
     "id": "pandas_038",
-    "title": "Fonction d'agrégation personnalisée",
+    "title": "Mini-nettoyage complet d'un dataset",
     "difficulty": "medium",
     "topic_tags": [
-      "agg",
-      "fonction personnalisée",
-      "groupby"
+      "nettoyage",
+      "pipeline",
+      "data cleaning"
     ],
-    "description": "Pour chaque catégorie de produit, calculez l'étendue des prix (max - min). Retournez un DataFrame avec category et price_range, trié par price_range DESC.",
-    "setup_note": "DataFrames disponibles : `products`",
-    "starter_code": "",
-    "solution_code": "def price_range(s):\n    return s.max() - s.min()\n\nresult = (products.groupby('category')['unit_price']\n  .agg(price_range)\n  .reset_index()\n  .rename(columns={'unit_price': 'price_range'})\n  .sort_values('price_range', ascending=False)\n  .reset_index(drop=True))",
-    "explanation": "agg() accepte des fonctions personnalisées. La lambda ou la fonction nommée reçoit une Series et doit retourner un scalaire.",
-    "ordered": true
-  },
-  {
-    "id": "pandas_039",
-    "title": "agg() multi-colonnes multi-fonctions",
-    "difficulty": "medium",
-    "topic_tags": [
-      "agg",
-      "groupby",
-      "multi-aggregation"
-    ],
-    "description": "Agrégez les commandes par statut en calculant : le count des id, la somme et la moyenne de quantity, la somme de (quantity * unit_price). Utilisez un seul appel .agg(). Retournez le résultat avec les colonnes aplaties (pas de MultiIndex).",
+    "description": "Nettoyez ce dataset simulé étape par étape :\n1. Créez des problèmes : `df = orders.copy(); df.loc[[0,3], 'unit_price'] = None; df = pd.concat([df, df.head(2)])`\n2. Supprimez les doublons\n3. Remplissez les unit_price manquants par la médiane\n4. Créez une colonne line_revenue\n5. Réinitialisez l'index\nAssignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.groupby('status').agg(\n  order_count=('id', 'count'),\n  qty_sum=('quantity', 'sum'),\n  qty_mean=('quantity', 'mean'),\n  total_revenue=('line_revenue', 'sum')\n).round(2).reset_index()",
-    "explanation": "La syntaxe agg(new_name=('col', 'func')) crée directement des colonnes avec des noms propres, évitant le MultiIndex.",
+    "solution_code": "df = orders.copy()\ndf.loc[[0, 3], 'unit_price'] = None\ndf = pd.concat([df, df.head(2)])\n\n# Étapes de nettoyage\ndf = df.drop_duplicates()\ndf['unit_price'] = df['unit_price'].fillna(df['unit_price'].median())\ndf['line_revenue'] = df['quantity'] * df['unit_price']\ndf = df.reset_index(drop=True)\nresult = df",
+    "explanation": "Un nettoyage typique suit cet ordre : déduplication → valeurs manquantes → types → colonnes calculées. Toujours travailler sur une copie et documenter chaque étape.",
     "ordered": false
   },
   {
-    "id": "pandas_040",
-    "title": "stack() / unstack() : pivot et dépivot",
-    "difficulty": "hard",
+    "id": "pandas_039",
+    "title": "Croissance mensuelle avec pct_change()",
+    "difficulty": "medium",
     "topic_tags": [
-      "stack",
-      "unstack",
-      "pivot"
+      "pct_change",
+      "dates",
+      "monthly_sales"
     ],
-    "description": "À partir de monthly_sales, créez un tableau croisé year (lignes) × month (colonnes) avec le revenu. Utilisez pivot_table ou unstack. Retournez un DataFrame où les lignes sont les années et les colonnes les mois (1 à 12).",
+    "description": "À partir de monthly_sales, calculez le taux de croissance mensuel du revenu (en %). Retournez year, month, revenue, growth_pct (arrondi à 1 décimale). Ignorez la première ligne sans précédent. Triez par year, month. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `monthly_sales`",
     "starter_code": "",
-    "solution_code": "result = monthly_sales.pivot_table(index='year', columns='month', values='revenue', aggfunc='sum')\nresult.columns.name = None\nresult.index.name = 'year'\nresult = result.reset_index()",
-    "explanation": "pivot_table avec index='year' et columns='month' pivote les données de format long à large. unstack() est l'équivalent sur un groupby avec MultiIndex.",
+    "solution_code": "df = monthly_sales.sort_values(['year', 'month']).copy()\ndf['growth_pct'] = (df['revenue'].pct_change() * 100).round(1)\nresult = df[['year', 'month', 'revenue', 'growth_pct']].dropna().reset_index(drop=True)",
+    "explanation": "pct_change() calcule (valeur_actuelle - valeur_précédente) / valeur_précédente. Multiplié par 100 pour avoir un pourcentage. La première ligne devient NaN (pas de précédent).",
+    "ordered": true
+  },
+  {
+    "id": "pandas_040",
+    "title": "Pivot table : revenu par catégorie et par mois",
+    "difficulty": "medium",
+    "topic_tags": [
+      "pivot_table",
+      "tableau croisé"
+    ],
+    "description": "Créez un tableau croisé : lignes = catégorie de produit, colonnes = mois de la commande (1 à 12), valeurs = revenu total. Remplacez les vides par 0. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
+    "starter_code": "",
+    "solution_code": "df = orders.merge(products[['id', 'category']], left_on='product_id', right_on='id')\ndf['month'] = pd.to_datetime(df['order_date']).dt.month\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.pivot_table(index='category', columns='month', values='line_revenue', aggfunc='sum', fill_value=0)\nresult.columns.name = None\nresult = result.reset_index()",
+    "explanation": "pivot_table() crée un tableau croisé dynamique. fill_value=0 remplace les NaN. aggfunc='sum' agrège les valeurs dupliquées.",
     "ordered": false
   },
   {
     "id": "pandas_041",
-    "title": "MultiIndex groupby : revenu par année et catégorie",
-    "difficulty": "hard",
+    "title": "Top N par groupe",
+    "difficulty": "medium",
     "topic_tags": [
-      "MultiIndex",
       "groupby",
-      "dates"
+      "nlargest",
+      "top N"
     ],
-    "description": "Calculez le revenu total par année (extrait de order_date) et par catégorie de produit. Retournez un DataFrame avec year, category, total_revenue, trié par year et total_revenue DESC.",
-    "setup_note": "DataFrames disponibles : `orders`, `products`",
+    "description": "Pour chaque catégorie de produit, trouvez le produit le plus cher. Retournez category, product_name, unit_price. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
     "starter_code": "",
-    "solution_code": "df = orders.merge(products[['id', 'category']], left_on='product_id', right_on='id')\ndf['year'] = pd.to_datetime(df['order_date']).dt.year\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = (df.groupby(['year', 'category'])['line_revenue']\n  .sum()\n  .round(2)\n  .reset_index()\n  .rename(columns={'line_revenue': 'total_revenue'})\n  .sort_values(['year', 'total_revenue'], ascending=[True, False])\n  .reset_index(drop=True))",
-    "explanation": "Un groupby avec plusieurs clés crée un MultiIndex. reset_index() l'aplatit en colonnes normales.",
-    "ordered": true
+    "solution_code": "result = (products.sort_values('unit_price', ascending=False)\n  .groupby('category')\n  .first()[['name', 'unit_price']]\n  .reset_index()\n  .rename(columns={'name': 'product_name'}))",
+    "explanation": "Après un tri décroissant, groupby().first() prend la première ligne de chaque groupe — c'est-à-dire la valeur max. Alternative : groupby().apply(lambda g: g.nlargest(1, 'unit_price')).",
+    "ordered": false
   },
   {
     "id": "pandas_042",
-    "title": "Dtype catégoriel : optimisation mémoire",
+    "title": "Détecter les outliers avec IQR",
     "difficulty": "medium",
     "topic_tags": [
-      "Categorical",
-      "dtype",
-      "mémoire"
+      "outliers",
+      "IQR",
+      "quantile"
     ],
-    "description": "Convertissez la colonne `status` de orders en dtype catégoriel, puis affichez l'utilisation mémoire avant et après. Retournez un DataFrame avec status_before_dtype, status_after_dtype, memory_before_bytes, memory_after_bytes.",
+    "description": "Détectez les outliers dans la colonne `unit_price` de orders en utilisant la méthode IQR (valeurs en dessous de Q1-1.5×IQR ou au-dessus de Q3+1.5×IQR). Retournez un DataFrame avec les lignes outliers. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "mem_before = orders['status'].memory_usage(deep=True)\ndf = orders.copy()\ndf['status'] = df['status'].astype('category')\nmem_after = df['status'].memory_usage(deep=True)\nresult = pd.DataFrame({\n  'status_before_dtype': [str(orders['status'].dtype)],\n  'status_after_dtype': [str(df['status'].dtype)],\n  'memory_before_bytes': [mem_before],\n  'memory_after_bytes': [mem_after]\n})",
-    "explanation": "Le dtype 'category' stocke les chaînes une seule fois et utilise des entiers pour les références. Gain de mémoire important sur des colonnes avec peu de valeurs uniques.",
+    "solution_code": "Q1 = orders['unit_price'].quantile(0.25)\nQ3 = orders['unit_price'].quantile(0.75)\nIQR = Q3 - Q1\nlower = Q1 - 1.5 * IQR\nupper = Q3 + 1.5 * IQR\nmask = (orders['unit_price'] < lower) | (orders['unit_price'] > upper)\nresult = orders[mask].reset_index(drop=True)\nprint(f'Outliers: {len(result)} sur {len(orders)} lignes')",
+    "explanation": "La règle IQR est la méthode standard pour détecter les outliers. Q1-1.5×IQR et Q3+1.5×IQR définissent les bornes au-delà desquelles une valeur est considérée comme aberrante.",
     "ordered": false
   },
   {
     "id": "pandas_043",
-    "title": "Method chaining : pipeline complet",
-    "difficulty": "hard",
+    "title": "isin() et ~ : inclure et exclure",
+    "difficulty": "easy",
     "topic_tags": [
-      "method chaining",
-      "pipeline",
-      "transformation"
+      "isin",
+      "filtrage"
     ],
-    "description": "En une seule expression chaînée, partez de orders : (1) ajoutez line_revenue = quantity * unit_price, (2) mergez avec customers pour récupérer tier, (3) groupez par tier, (4) calculez le revenu total et le nombre de commandes, (5) ajoutez une colonne avg_order_value = total_revenue / order_count arrondie à 2 décimales, (6) triez par total_revenue DESC. Assignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`",
+    "description": "Filtrez les produits appartenant aux catégories 'Electronics' ou 'Clothing'. Puis filtrez les produits n'appartenant PAS à ces catégories. Assignez les produits exclus à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
     "starter_code": "",
-    "solution_code": "result = (orders\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .merge(customers[['id', 'tier']], left_on='customer_id', right_on='id')\n  .groupby('tier')\n  .agg(total_revenue=('line_revenue', 'sum'), order_count=('id_x', 'count'))\n  .reset_index()\n  .assign(avg_order_value=lambda df: (df['total_revenue'] / df['order_count']).round(2))\n  .sort_values('total_revenue', ascending=False)\n  .reset_index(drop=True))",
-    "explanation": "Le method chaining enchaîne les transformations sans variables intermédiaires. assign() est particulièrement utile dans ce pattern car il retourne un DataFrame.",
+    "solution_code": "categories = ['Electronics', 'Clothing']\nincluded = products[products['category'].isin(categories)]\nexcluded = products[~products['category'].isin(categories)]\nresult = excluded[['name', 'category', 'unit_price']].reset_index(drop=True)",
+    "explanation": "isin([...]) vérifie l'appartenance à une liste — équivalent de SQL IN. ~ inverse le masque booléen — équivalent de NOT IN.",
     "ordered": true
   },
   {
     "id": "pandas_044",
-    "title": "Exclusion avec isin() et ~ : commandes hors catégories",
+    "title": "value_counts() : analyser une distribution",
     "difficulty": "easy",
     "topic_tags": [
-      "isin",
-      "négation",
-      "filtrage"
+      "value_counts",
+      "distribution",
+      "normalize"
     ],
-    "description": "Sélectionnez les commandes portant sur des produits qui ne sont PAS dans les catégories 'Electronics' ou 'Food'. Retournez un DataFrame avec order_id (=id de orders), product_name, category, line_revenue = quantity * unit_price. Triez par line_revenue DESC.",
-    "setup_note": "DataFrames disponibles : `orders`, `products`",
+    "description": "Analysez la distribution des tiers clients : affichez le count et la proportion (%) de chaque tier. Retournez un DataFrame avec tier, count, percentage (arrondi à 1 décimale). Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`",
     "starter_code": "",
-    "solution_code": "df = orders.merge(products[['id', 'name', 'category']], left_on='product_id', right_on='id')\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nmask = ~df['category'].isin(['Electronics', 'Food'])\nresult = df[mask][['id_x', 'name', 'category', 'line_revenue']].rename(columns={'id_x': 'order_id', 'name': 'product_name'}).sort_values('line_revenue', ascending=False).reset_index(drop=True)",
-    "explanation": "Le tilde ~ inverse un masque booléen. ~series.isin([...]) est l'équivalent de NOT IN en SQL.",
+    "solution_code": "counts = customers['tier'].value_counts()\nprops = customers['tier'].value_counts(normalize=True) * 100\nresult = pd.DataFrame({\n  'tier': counts.index,\n  'count': counts.values,\n  'percentage': props.values.round(1)\n}).reset_index(drop=True)",
+    "explanation": "value_counts() trie par fréquence décroissante. normalize=True retourne des proportions (0 à 1). Multiplié par 100 pour avoir des pourcentages.",
     "ordered": true
   },
   {
     "id": "pandas_045",
-    "title": "sample() : échantillon reproductible",
+    "title": "Renommer des colonnes avec rename()",
     "difficulty": "easy",
     "topic_tags": [
-      "sample",
-      "random_state",
-      "reproductibilité"
+      "rename",
+      "colonnes"
     ],
-    "description": "Tirez un échantillon aléatoire reproductible de 10 commandes (random_state=42). Retournez toutes les colonnes de orders, triées par id.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Joignez orders et customers, puis renommez les colonnes pour avoir : order_id, customer_name, quantity, revenue (= quantity * unit_price). Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `customers`",
     "starter_code": "",
-    "solution_code": "result = orders.sample(n=10, random_state=42).sort_values('id').reset_index(drop=True)",
-    "explanation": "random_state fixe la graine du générateur aléatoire, garantissant la reproductibilité. Indispensable pour des tests et expériences partageables.",
-    "ordered": true
+    "solution_code": "df = orders.merge(customers[['id', 'name']], left_on='customer_id', right_on='id')\ndf['revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id_x', 'name', 'quantity', 'revenue']].rename(columns={\n  'id_x': 'order_id',\n  'name': 'customer_name'\n}).reset_index(drop=True)",
+    "explanation": "rename(columns={'ancien': 'nouveau'}) renomme les colonnes spécifiées. Plus précis que de réassigner df.columns = [...] qui renomme toutes les colonnes.",
+    "ordered": false
   },
   {
     "id": "pandas_046",
-    "title": "rank() : plusieurs méthodes de gestion des ex-aequo",
+    "title": "Moyenne mobile sur 3 mois (rolling)",
     "difficulty": "medium",
     "topic_tags": [
-      "rank",
-      "ex-aequo",
-      "method"
+      "rolling",
+      "moyenne mobile",
+      "monthly_sales"
     ],
-    "description": "Pour chaque produit, calculez son rang de unit_price avec les méthodes 'average', 'min' et 'dense'. Retournez un DataFrame avec name, unit_price, rank_avg, rank_min, rank_dense. Triez par unit_price DESC.",
-    "setup_note": "DataFrames disponibles : `products`",
+    "description": "Calculez la moyenne mobile sur 3 mois du revenu dans monthly_sales. Retournez year, month, revenue, rolling_mean_3m (arrondi à 2 déc.). Ignorez les lignes sans 3 mois de données. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `monthly_sales`",
     "starter_code": "",
-    "solution_code": "df = products[['name', 'unit_price']].copy()\ndf['rank_avg'] = df['unit_price'].rank(ascending=False, method='average')\ndf['rank_min'] = df['unit_price'].rank(ascending=False, method='min')\ndf['rank_dense'] = df['unit_price'].rank(ascending=False, method='dense')\nresult = df.sort_values('unit_price', ascending=False).reset_index(drop=True)",
-    "explanation": "'average' : moyenne des rangs ex-aequo. 'min' : premier rang (même comportement que SQL RANK). 'dense' : pas de saut de rang (SQL DENSE_RANK).",
+    "solution_code": "df = monthly_sales.sort_values(['year', 'month']).copy()\ndf['rolling_mean_3m'] = df['revenue'].rolling(window=3).mean().round(2)\nresult = df[['year', 'month', 'revenue', 'rolling_mean_3m']].dropna().reset_index(drop=True)",
+    "explanation": "rolling(window=3) crée une fenêtre glissante de 3 lignes. Les 2 premières lignes seront NaN (pas assez de données). Utile pour lisser les fluctuations et voir les tendances.",
     "ordered": true
   },
   {
     "id": "pandas_047",
-    "title": "expanding() : moyenne mobile depuis le début",
-    "difficulty": "hard",
+    "title": "nunique() et describe() pour un profiling rapide",
+    "difficulty": "easy",
     "topic_tags": [
-      "expanding",
-      "window",
-      "cumulative"
+      "nunique",
+      "describe",
+      "profiling"
     ],
-    "description": "À partir de monthly_sales trié par year et month, calculez la moyenne cumulative du revenu depuis le premier mois (expanding mean). Retournez year, month, revenue, expanding_mean (arrondi à 2 déc.).",
-    "setup_note": "DataFrames disponibles : `monthly_sales`",
+    "description": "Faites un profiling rapide de la table orders : (1) nombre de valeurs uniques par colonne, (2) statistiques descriptives des colonnes numériques. Assignez le nombre de valeurs uniques (Series) à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "df = monthly_sales.sort_values(['year', 'month']).copy()\ndf['expanding_mean'] = df['revenue'].expanding().mean().round(2)\nresult = df[['year', 'month', 'revenue', 'expanding_mean']].reset_index(drop=True)",
-    "explanation": "expanding() crée une fenêtre qui grandit depuis le début. expanding().mean() calcule la moyenne de tous les mois précédents + le mois courant.",
-    "ordered": true
+    "solution_code": "print('=== Valeurs uniques par colonne ===')\nresult = orders.nunique()\nprint(result)\nprint('\\n=== Statistiques descriptives ===')\nprint(orders.describe())",
+    "explanation": "nunique() compte les valeurs distinctes par colonne — utile pour identifier les clés primaires (nunique = nb de lignes) et les colonnes catégorielles (nunique faible). describe() donne mean, std, min, quartiles, max.",
+    "ordered": false
   },
   {
     "id": "pandas_048",
-    "title": "pivot_table avec fill_value : revenu par tier et statut",
+    "title": "Fusionner et comparer deux périodes",
     "difficulty": "medium",
     "topic_tags": [
-      "pivot_table",
-      "fill_value",
-      "wide format"
+      "dates",
+      "merge",
+      "comparaison"
     ],
-    "description": "Créez un tableau croisé : lignes = tier client, colonnes = statut de commande, valeurs = revenu total (quantity * unit_price). Remplissez les cases vides avec 0. Retournez le DataFrame pivoté avec tier comme colonne (pas index).",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`",
+    "description": "Comparez le revenu total par catégorie entre 2022 et 2023. Retournez un DataFrame avec category, revenue_2022, revenue_2023, et growth_pct (arrondi à 1 décimale). Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.merge(customers[['id', 'tier']], left_on='customer_id', right_on='id')\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.pivot_table(index='tier', columns='status', values='line_revenue', aggfunc='sum', fill_value=0).reset_index()\nresult.columns.name = None",
-    "explanation": "fill_value=0 remplace les NaN (combinaisons tier/statut sans commandes) par 0. reset_index() transforme le tier d'index en colonne.",
+    "solution_code": "df = orders.merge(products[['id', 'category']], left_on='product_id', right_on='id')\ndf['year'] = pd.to_datetime(df['order_date']).dt.year\ndf['line_revenue'] = df['quantity'] * df['unit_price']\n\nrev_2022 = df[df['year'] == 2022].groupby('category')['line_revenue'].sum().round(2)\nrev_2023 = df[df['year'] == 2023].groupby('category')['line_revenue'].sum().round(2)\n\nresult = pd.DataFrame({'revenue_2022': rev_2022, 'revenue_2023': rev_2023}).reset_index()\nresult.columns = ['category', 'revenue_2022', 'revenue_2023']\nresult['growth_pct'] = ((result['revenue_2023'] - result['revenue_2022']) / result['revenue_2022'] * 100).round(1)",
+    "explanation": "On calcule les agrégations séparément par année, puis on merge les deux Series en DataFrame. La croissance se calcule ensuite colonne par colonne.",
     "ordered": false
   },
   {
     "id": "pandas_049",
-    "title": "Clients actifs en 2022 et 2023 (intersection)",
-    "difficulty": "hard",
+    "title": "Clients sans commande (anti-jointure)",
+    "difficulty": "medium",
     "topic_tags": [
-      "dates",
-      "intersection",
-      "set operations"
+      "merge",
+      "anti-jointure",
+      "left join"
     ],
-    "description": "Trouvez les clients ayant passé au moins une commande en 2022 ET en 2023. Retournez un DataFrame avec customer_id et customer_name, trié par customer_name.",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`",
+    "description": "Trouvez les clients qui n'ont jamais passé de commande. Utilisez un LEFT JOIN et filtrez sur les NaN. Retournez id et name des clients sans commande. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `customers`, `orders`",
     "starter_code": "",
-    "solution_code": "orders['year'] = pd.to_datetime(orders['order_date']).dt.year\nids_2022 = set(orders[orders['year'] == 2022]['customer_id'])\nids_2023 = set(orders[orders['year'] == 2023]['customer_id'])\nactive_both = ids_2022 & ids_2023\nresult = customers[customers['id'].isin(active_both)][['id', 'name']].rename(columns={'id': 'customer_id', 'name': 'customer_name'}).sort_values('customer_name').reset_index(drop=True)",
-    "explanation": "L'intersection de deux sets Python donne les IDs présents dans les deux années. isin() filtre ensuite le DataFrame customers.",
+    "solution_code": "df = customers[['id', 'name']].merge(\n  orders[['customer_id']].drop_duplicates(),\n  left_on='id', right_on='customer_id',\n  how='left'\n)\nresult = df[df['customer_id'].isna()][['id', 'name']].reset_index(drop=True)",
+    "explanation": "L'anti-jointure Pandas = LEFT JOIN + filtre sur NaN côté droit. Équivalent SQL : LEFT JOIN ... WHERE orders.customer_id IS NULL. C'est le pattern le plus courant pour 'A sans B'.",
     "ordered": true
   },
   {
     "id": "pandas_050",
-    "title": "Revenu par ville et par année (tableau croisé)",
+    "title": "Pipeline complet : du raw au rapport",
     "difficulty": "hard",
     "topic_tags": [
-      "pivot_table",
-      "merge",
-      "dates"
+      "pipeline",
+      "nettoyage",
+      "analyse",
+      "rapport"
     ],
-    "description": "Calculez le revenu total par ville (city) des clients et par année (order_date). Retournez un tableau croisé : lignes = city, colonnes = année, valeurs = revenu (arrondi à 0 décimale). Remplissez les cases vides par 0.",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`",
+    "description": "Réalisez un mini-rapport complet : (1) joignez orders, customers, products, (2) créez line_revenue, (3) filtrez les commandes 'delivered', (4) calculez le revenu total et le nombre de commandes par tier client, (5) ajoutez avg_order_value = total_revenue / order_count, (6) triez par total_revenue DESC. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `customers`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.merge(customers[['id', 'city']], left_on='customer_id', right_on='id')\ndf['year'] = pd.to_datetime(df['order_date']).dt.year\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.pivot_table(index='city', columns='year', values='line_revenue', aggfunc='sum', fill_value=0).round(0).reset_index()\nresult.columns.name = None",
-    "explanation": "pivot_table avec index='city' et columns='year' crée un tableau croisé. fill_value=0 gère les villes sans commande pour une année donnée.",
-    "ordered": false
+    "solution_code": "result = (orders\n  .merge(customers[['id', 'name', 'tier']], left_on='customer_id', right_on='id')\n  .merge(products[['id', 'category']], left_on='product_id', right_on='id')\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .query(\"status == 'delivered'\")\n  .groupby('tier')\n  .agg(total_revenue=('line_revenue', 'sum'), order_count=('line_revenue', 'count'))\n  .round(2)\n  .reset_index()\n  .assign(avg_order_value=lambda df: (df['total_revenue'] / df['order_count']).round(2))\n  .sort_values('total_revenue', ascending=False)\n  .reset_index(drop=True))",
+    "explanation": "Ce pipeline enchaîne toutes les opérations fondamentales : merge, filtre, agrégation, calcul, tri. C'est le type de code qu'on écrit quotidiennement en entretien technique DA.",
+    "ordered": true
   }
 ]

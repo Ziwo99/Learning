@@ -405,7 +405,7 @@
     "description": "Pour chaque statut de commande, calculez : nombre de commandes, revenu total, revenu moyen, revenu min et revenu max. Colonnes : status, order_count, total_revenue, avg_revenue, min_revenue, max_revenue. Triez par total_revenue DESC.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "SELECT\n  status,\n  COUNT(*) AS order_count,\n  ROUND(SUM(quantity * unit_price), 2) AS total_revenue,\n  ROUND(AVG(quantity * unit_price), 2) AS avg_revenue,\n  ROUND(MIN(quantity * unit_price), 2) AS min_revenue,\n  ROUND(MAX(quantity * unit_price), 2) AS max_revenue\nFROM orders\nGROUP BY status\nORDER BY total_revenue DESC",
+    "solution_code": "SELECT\n  status,\n  COUNT(*) AS order_count,\n  ROUND(SUM(quantity * unit_price), 2) AS total_revenue,\n  ROUND(AVG(quantity * unit_price), 2) AS avg_revenue,\n  ROUND(MIN(quantity * unit_price), 2) AS min_revenue,\n  ROUND(MAX(quantity * unit_price), 2) AS max_revenue\nFROM orders\nJOIN customers c ON c.id = orders.customer_id\nJOIN products p ON p.id = orders.product_id\nGROUP BY status\nORDER BY total_revenue DESC",
     "explanation": "Une seule requête GROUP BY peut calculer toutes les fonctions d'agrégation (COUNT, SUM, AVG, MIN, MAX) simultanément — efficace pour un profil rapide.",
     "ordered": true
   },

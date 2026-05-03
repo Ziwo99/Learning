@@ -437,7 +437,7 @@
     "description": "Calculez le revenu de chaque catégorie de produit et sa part en pourcentage du revenu total. Colonnes : category, category_revenue, pct_of_total (arrondi à 1 décimale). Triez par category_revenue DESC.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "SELECT\n  p.category,\n  ROUND(SUM(o.quantity * o.unit_price), 2) AS category_revenue,\n  ROUND(\n    SUM(o.quantity * o.unit_price) * 100.0 /\n    SUM(SUM(o.quantity * o.unit_price)) OVER (),\n    1\n  ) AS pct_of_total\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.category\nORDER BY category_revenue DESC",
+    "solution_code": "SELECT\n  p.category,\n  ROUND(SUM(o.quantity * p.unit_price), 2) AS category_revenue,\n  ROUND(\n    SUM(o.quantity * o.unit_price) * 100.0 /\n    SUM(SUM(o.quantity * o.unit_price)) OVER (),\n    1\n  ) AS pct_of_total\nFROM orders o\nJOIN products p ON o.product_id = p.id\nGROUP BY p.category\nORDER BY category_revenue DESC",
     "explanation": "SUM(SUM(...)) OVER () calcule le total général à partir des sous-totaux de catégorie. Cette technique évite une sous-requête séparée.",
     "ordered": true
   },
@@ -453,7 +453,7 @@
     "description": "Listez les produits commandés par plus de 3 clients distincts. Colonnes : product_name, distinct_customers. Triez par distinct_customers DESC.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "SELECT\n  p.name AS product_name,\n  COUNT(DISTINCT o.customer_id) AS distinct_customers\nFROM products p\nJOIN orders o ON p.id = o.product_id\nGROUP BY p.id, p.name\nHAVING distinct_customers > 3\nORDER BY distinct_customers DESC",
+    "solution_code": "SELECT\n  p.name AS product_name,\n  COUNT(DISTINCT o.customer_id) AS distinct_customers\nFROM products p\nJOIN orders o ON p.id = o.product_id\nGROUP BY p.name\nHAVING distinct_customers > 3\nORDER BY distinct_customers DESC",
     "explanation": "COUNT(DISTINCT customer_id) compte les clients uniques par produit. HAVING filtre après l'agrégation pour ne garder que les produits populaires.",
     "ordered": true
   },
@@ -469,24 +469,8 @@
     "description": "Trouvez le client ayant le 2e plus grand revenu total. En cas d'ex-aequo, retournez tous les clients à cette position. Colonnes : customer_name, total_revenue, revenue_rank.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "WITH ranked AS (\n  SELECT\n    c.name AS customer_name,\n    ROUND(SUM(o.quantity * o.unit_price), 2) AS total_revenue,\n    DENSE_RANK() OVER (ORDER BY SUM(o.quantity * o.unit_price) DESC) AS revenue_rank\n  FROM customers c\n  JOIN orders o ON c.id = o.customer_id\n  GROUP BY c.id, c.name\n)\nSELECT customer_name, total_revenue, revenue_rank\nFROM ranked\nWHERE revenue_rank = 2",
+    "solution_code": "WITH ranked AS (\n  SELECT\n    c.name AS customer_name,\n    ROUND(SUM(o.quantity * o.unit_price), 2) AS total_revenue,\n    DENSE_RANK() OVER (ORDER BY SUM(o.quantity * o.unit_price) DESC) AS revenue_rank\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.id\nJOIN products p ON p.id = o.product_id\nGROUP BY c.id, c.name\n)\nSELECT customer_name, total_revenue, revenue_rank\nFROM ranked\nWHERE revenue_rank = 2",
     "explanation": "DENSE_RANK permet de gérer les ex-aequo sans sauter de rang. Filtrer sur revenue_rank = 2 retourne tous les clients en 2e position.",
     "ordered": false
-  },
-  {
-    "id": "sql_030",
-    "title": "Employés avec salaire supérieur à la moyenne de leur département",
-    "difficulty": "hard",
-    "topic_tags": [
-      "CTE",
-      "window functions",
-      "AVG OVER PARTITION BY"
-    ],
-    "description": "Listez les employés dont le salaire est supérieur à la moyenne de leur département. Colonnes : name, department, salary, dept_avg_salary (arrondi à 2 décimales). Triez par department, salary DESC.",
-    "setup_note": "",
-    "starter_code": "",
-    "solution_code": "WITH dept_avg AS (\n  SELECT\n    name,\n    department,\n    salary,\n    ROUND(AVG(salary) OVER (PARTITION BY department), 2) AS dept_avg_salary\n  FROM employees\n)\nSELECT name, department, salary, dept_avg_salary\nFROM dept_avg\nWHERE salary > dept_avg_salary\nORDER BY department, salary DESC",
-    "explanation": "AVG(salary) OVER (PARTITION BY department) calcule la moyenne du département pour chaque ligne sans GROUP BY. La CTE rend le filtrage WHERE possible.",
-    "ordered": true
   }
 ]

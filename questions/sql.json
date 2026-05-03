@@ -469,7 +469,7 @@
     "description": "Trouvez le client ayant le 2e plus grand revenu total. En cas d'ex-aequo, retournez tous les clients à cette position. Colonnes : customer_name, total_revenue, revenue_rank.",
     "setup_note": "",
     "starter_code": "",
-    "solution_code": "WITH ranked AS (\n  SELECT\n    c.name AS customer_name,\n    ROUND(SUM(o.quantity * o.unit_price), 2) AS total_revenue,\n    DENSE_RANK() OVER (ORDER BY SUM(o.quantity * o.unit_price) DESC) AS revenue_rank\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.id\nJOIN products p ON p.id = o.product_id\nGROUP BY c.id, c.name\n)\nSELECT customer_name, total_revenue, revenue_rank\nFROM ranked\nWHERE revenue_rank = 2",
+    "solution_code": "WITH ranked AS (\n  SELECT\n    c.name AS customer_name,\n    ROUND(SUM(o.quantity * p.unit_price), 2) AS total_revenue,\n    DENSE_RANK() OVER (ORDER BY SUM(o.quantity * p.unit_price) DESC) AS revenue_rank\n  FROM orders o\n  JOIN customers c ON o.customer_id = c.id\n  JOIN products p ON p.id = o.product_id\n  GROUP BY c.id, c.name\n)\nSELECT customer_name, total_revenue, revenue_rank\nFROM ranked\nWHERE revenue_rank = 2",
     "explanation": "DENSE_RANK permet de gérer les ex-aequo sans sauter de rang. Filtrer sur revenue_rank = 2 retourne tous les clients en 2e position.",
     "ordered": false
   }

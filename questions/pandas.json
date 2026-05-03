@@ -8,11 +8,11 @@
       "Series",
       "fondamentaux"
     ],
-    "description": "Créez une Series contenant les revenus des 5 premiers clients de la table `orders` (colonne `unit_price`). Puis affichez son type avec `type()`. Assignez la Series à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Créez une Series contenant les prix unitaires des 5 premiers produits de la table `products` (colonne `unit_price`). Puis affichez son type avec `type()`. Assignez la Series à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
     "starter_code": "",
-    "solution_code": "result = orders['unit_price'].head(5)\nprint(type(result))",
-    "explanation": "Une Series est une colonne (1D), un DataFrame est un tableau (2D). orders['unit_price'] retourne une Series ; orders[['unit_price']] retourne un DataFrame.",
+    "solution_code": "result = products['unit_price'].head(5)\nprint(type(result))",
+    "explanation": "Une Series est une colonne (1D), un DataFrame est un tableau (2D). products['unit_price'] retourne une Series ; products[['unit_price']] retourne un DataFrame.",
     "ordered": true
   },
   {
@@ -86,11 +86,11 @@
       "loc",
       "sélection"
     ],
-    "description": "Utilisez `.loc` pour sélectionner les lignes où le statut de commande est 'delivered', et n'afficher que les colonnes `id`, `customer_id` et `status`. Assignez à `result`.",
+    "description": "Utilisez `.loc` pour sélectionner les lignes où le statut de commande est 'completed', et n'afficher que les colonnes `id`, `customer_id` et `status`. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "result = orders.loc[orders['status'] == 'delivered', ['id', 'customer_id', 'status']].reset_index(drop=True)",
-    "explanation": "loc[lignes, colonnes] permet de filtrer lignes et colonnes simultanément par label. La virgule sépare le filtre de lignes (condition booléenne) et la sélection de colonnes.",
+    "solution_code": "result = orders.loc[orders['status'] == 'completed', ['id', 'customer_id', 'status']].reset_index(drop=True)",
+    "explanation": "loc[lignes, colonnes] permet de filtrer lignes et colonnes simultanément par label. La virgule sépare le filtre de lignes (condition booléenne) et la sélection de colonnes. Les statuts dans orders sont : 'completed', 'pending', 'cancelled'.",
     "ordered": false
   },
   {
@@ -116,11 +116,11 @@
       "nouvelle colonne",
       "calcul"
     ],
-    "description": "Créez une colonne `line_revenue` dans orders égale à `quantity * unit_price`. Retournez un DataFrame avec les colonnes id, quantity, unit_price, line_revenue. Assignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Joignez orders avec products pour récupérer `unit_price`, puis créez une colonne `line_revenue` égale à `quantity * unit_price`. Retournez un DataFrame avec les colonnes id, quantity, unit_price, line_revenue. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id', 'quantity', 'unit_price', 'line_revenue']]",
-    "explanation": "On crée une colonne en l'assignant directement : df['nouvelle'] = expression. Toujours travailler sur une copie (.copy()) pour éviter de modifier le DataFrame original.",
+    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id_x', 'quantity', 'unit_price', 'line_revenue']].rename(columns={'id_x': 'id'})",
+    "explanation": "On crée une colonne en l'assignant directement : df['nouvelle'] = expression. Ici on joint d'abord orders avec products pour obtenir unit_price, puis on calcule le revenu ligne par ligne.",
     "ordered": true
   },
   {
@@ -194,10 +194,10 @@
       "max",
       "statistiques"
     ],
-    "description": "Sur la colonne `unit_price` de orders, calculez la moyenne, la somme, le minimum et le maximum. Retournez un DataFrame avec une ligne et les colonnes mean, sum, min, max. Assignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Sur la colonne `unit_price` de products, calculez la moyenne, la somme, le minimum et le maximum. Retournez un DataFrame avec une ligne et les colonnes mean, sum, min, max. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
     "starter_code": "",
-    "solution_code": "result = pd.DataFrame([{\n  'mean': round(orders['unit_price'].mean(), 2),\n  'sum': round(orders['unit_price'].sum(), 2),\n  'min': orders['unit_price'].min(),\n  'max': orders['unit_price'].max()\n}])",
+    "solution_code": "result = pd.DataFrame([{\n  'mean': round(products['unit_price'].mean(), 2),\n  'sum': round(products['unit_price'].sum(), 2),\n  'min': products['unit_price'].min(),\n  'max': products['unit_price'].max()\n}])",
     "explanation": "Ces méthodes s'appliquent directement sur une Series. Sur un DataFrame entier, elles s'appliquent colonne par colonne. describe() donne toutes ces stats en une seule commande.",
     "ordered": false
   },
@@ -209,11 +209,11 @@
       "groupby",
       "agrégation"
     ],
-    "description": "Calculez le nombre de commandes et le revenu total (quantity * unit_price) par statut de commande. Triez par revenu total décroissant. Assignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Joignez orders avec products pour récupérer unit_price. Calculez le nombre de commandes et le revenu total (quantity * unit_price) par statut de commande. Triez par revenu total décroissant. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.groupby('status').agg(\n  order_count=('id', 'count'),\n  total_revenue=('line_revenue', 'sum')\n).round(2).reset_index().sort_values('total_revenue', ascending=False).reset_index(drop=True)",
-    "explanation": "groupby('col').agg() permet de calculer plusieurs agrégations en une fois. La syntaxe agg(nom=('colonne', 'fonction')) crée des colonnes bien nommées directement.",
+    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.groupby('status').agg(\n  order_count=('id_x', 'count'),\n  total_revenue=('line_revenue', 'sum')\n).round(2).reset_index().sort_values('total_revenue', ascending=False).reset_index(drop=True)",
+    "explanation": "groupby('col').agg() permet de calculer plusieurs agrégations en une fois. La syntaxe agg(nom=('colonne', 'fonction')) crée des colonnes bien nommées directement. On joint d'abord orders et products pour avoir unit_price.",
     "ordered": true
   },
   {
@@ -239,11 +239,11 @@
       "merge",
       "jointure"
     ],
-    "description": "Joignez orders avec customers pour récupérer le nom du client (name) et le tier. Retournez les colonnes : order_id (=id de orders), customer_name (=name), tier, quantity, unit_price. Assignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`, `customers`",
+    "description": "Joignez orders avec customers pour récupérer le nom du client (name) et le tier, puis avec products pour récupérer unit_price. Retournez les colonnes : order_id (=id de orders), customer_name (=name), tier, quantity, unit_price. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `customers`, `products`",
     "starter_code": "",
-    "solution_code": "result = orders.merge(customers[['id', 'name', 'tier']], left_on='customer_id', right_on='id')\nresult = result[['id_x', 'name', 'tier', 'quantity', 'unit_price']].rename(columns={'id_x': 'order_id', 'name': 'customer_name'})",
-    "explanation": "merge() joint deux DataFrames sur des colonnes clés. left_on et right_on spécifient les colonnes de jointure quand elles n'ont pas le même nom.",
+    "solution_code": "df = orders.merge(customers[['id', 'name', 'tier']], left_on='customer_id', right_on='id')\ndf = df.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\nresult = df[['id_x', 'name', 'tier', 'quantity', 'unit_price']].rename(columns={'id_x': 'order_id', 'name': 'customer_name'})",
+    "explanation": "merge() joint deux DataFrames sur des colonnes clés. Quand les deux tables ont une colonne 'id', après fusion elles deviennent id_x et id_y. On peut enchaîner plusieurs merge() pour joindre plus de deux tables.",
     "ordered": false
   },
   {
@@ -254,11 +254,11 @@
       "concat",
       "concaténation"
     ],
-    "description": "Séparez les commandes 'delivered' et 'pending' dans deux DataFrames, puis recombinez-les avec pd.concat(). Réinitialisez l'index. Assignez à `result`.",
+    "description": "Séparez les commandes 'completed' et 'pending' dans deux DataFrames, puis recombinez-les avec pd.concat(). Réinitialisez l'index. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "delivered = orders[orders['status'] == 'delivered']\npending = orders[orders['status'] == 'pending']\nresult = pd.concat([delivered, pending]).reset_index(drop=True)",
-    "explanation": "pd.concat([df1, df2]) empile les DataFrames verticalement. ignore_index=True (ou reset_index) remet l'index à 0. axis=1 concatène horizontalement.",
+    "solution_code": "completed = orders[orders['status'] == 'completed']\npending = orders[orders['status'] == 'pending']\nresult = pd.concat([completed, pending]).reset_index(drop=True)",
+    "explanation": "pd.concat([df1, df2]) empile les DataFrames verticalement. ignore_index=True (ou reset_index) remet l'index à 0. axis=1 concatène horizontalement. Les statuts disponibles dans orders sont : 'completed', 'pending', 'cancelled'.",
     "ordered": false
   },
   {
@@ -272,7 +272,7 @@
     "description": "Dans orders, la colonne `quantity` est de type int. Convertissez-la en float. Vérifiez le type avant et après. Assignez le DataFrame modifié (toutes colonnes) à `result`.",
     "setup_note": "DataFrames disponibles : `orders`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\nprint('Avant:', df['quantity'].dtype)\ndf['quantity'] = df['quantity'].astype(float)\nprint('Après:', df['quantity'].dtype)\nresult = df",
+    "solution_code": "df = orders.copy()\ndf['quantity'] = df['quantity'].astype(float)\nresult = df",
     "explanation": "astype() convertit le type d'une colonne. Types courants : 'int', 'float', 'str', 'bool', 'category'. Si la conversion échoue (ex: '12abc' → int), une erreur est levée.",
     "ordered": false
   },
@@ -300,10 +300,10 @@
       "performance",
       "boucle"
     ],
-    "description": "Calculez le revenu total (quantity * unit_price) de deux façons : (1) avec une boucle for, (2) avec une opération vectorisée. Comparez les résultats. Assignez le résultat vectorisé (Series) à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Joignez orders avec products pour avoir unit_price. Calculez le revenu total (quantity * unit_price) de deux façons : (1) avec une boucle for, (2) avec une opération vectorisée. Comparez les résultats. Assignez le résultat vectorisé (Series) à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "# Boucle (lent, à éviter)\nrevenues_loop = []\nfor _, row in orders.iterrows():\n    revenues_loop.append(row['quantity'] * row['unit_price'])\n\n# Vectorisé (rapide, privilégier)\nresult = orders['quantity'] * orders['unit_price']\n\nprint('Résultats identiques:', list(result) == revenues_loop)",
+    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\n\n# Boucle (lent, à éviter)\nrevenues_loop = []\nfor _, row in df.iterrows():\n    revenues_loop.append(row['quantity'] * row['unit_price'])\n\n# Vectorisé (rapide, privilégier)\nresult = df['quantity'] * df['unit_price']\n\nprint('Résultats identiques:', list(result) == revenues_loop)",
     "explanation": "Les opérations vectorisées Pandas/NumPy sont 10 à 100x plus rapides que les boucles Python car elles opèrent sur des tableaux en C. Éviter iterrows() sur de grands datasets.",
     "ordered": true
   },
@@ -316,10 +316,10 @@
       "copy",
       "bonne pratique"
     ],
-    "description": "Filtrez les commandes 'delivered', puis essayez d'ajouter une colonne — vous pourriez voir un warning. Corrigez en utilisant .copy(). Assignez le DataFrame corrigé avec la colonne line_revenue à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Joignez orders avec products, filtrez les commandes 'completed', puis ajoutez une colonne line_revenue — utilisez .copy() pour éviter le SettingWithCopyWarning. Assignez le DataFrame corrigé avec les colonnes id, status, line_revenue à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "# Sans .copy() → risque de SettingWithCopyWarning\n# df_bad = orders[orders['status'] == 'delivered']\n# df_bad['line_revenue'] = df_bad['quantity'] * df_bad['unit_price']  # Warning !\n\n# Avec .copy() → correct\ndf = orders[orders['status'] == 'delivered'].copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id', 'status', 'line_revenue']].reset_index(drop=True)",
+    "solution_code": "# Sans .copy() → risque de SettingWithCopyWarning\n# df_bad = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\n# df_bad = df_bad[df_bad['status'] == 'completed']\n# df_bad['line_revenue'] = df_bad['quantity'] * df_bad['unit_price']  # Warning !\n\n# Avec .copy() → correct\ndf = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf = df[df['status'] == 'completed'].copy()\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df[['id_x', 'status', 'line_revenue']].rename(columns={'id_x': 'id'}).reset_index(drop=True)",
     "explanation": "Ce warning survient quand on modifie une copie implicite d'un DataFrame. La solution : toujours appeler .copy() après un filtre avant de modifier le résultat.",
     "ordered": true
   },
@@ -333,10 +333,10 @@
       "fillna",
       "dropna"
     ],
-    "description": "Créez des NaN dans orders : `df.loc[[0,5,10], 'unit_price'] = None` et `df.loc[[2,8], 'status'] = None`. Puis : (1) comptez les NaN par colonne, (2) remplissez unit_price par la médiane, (3) supprimez les lignes où status est NaN. Assignez le DataFrame final à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Joignez orders avec products. Créez des NaN : `df.loc[[0,5,10], 'unit_price'] = None` et `df.loc[[2,8], 'status'] = None`. Puis : (1) comptez les NaN par colonne, (2) remplissez unit_price par la médiane, (3) supprimez les lignes où status est NaN. Assignez le DataFrame final à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf.loc[[0, 5, 10], 'unit_price'] = None\ndf.loc[[2, 8], 'status'] = None\n\nprint('NaN par colonne:')\nprint(df.isna().sum())\n\ndf['unit_price'] = df['unit_price'].fillna(df['unit_price'].median())\ndf = df.dropna(subset=['status'])\nresult = df.reset_index(drop=True)",
+    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf.loc[[0, 5, 10], 'unit_price'] = None\ndf.loc[[2, 8], 'status'] = None\n\nprint('NaN par colonne:')\nprint(df.isna().sum())\n\ndf['unit_price'] = df['unit_price'].fillna(df['unit_price'].median())\ndf = df.dropna(subset=['status'])\nresult = df.reset_index(drop=True)",
     "explanation": "Stratégie : d'abord analyser (isna().sum()), puis décider colonne par colonne — remplir les numériques par moyenne/médiane, supprimer les lignes avec des catégories manquantes critiques.",
     "ordered": false
   },
@@ -349,10 +349,10 @@
       "pipeline",
       "data cleaning"
     ],
-    "description": "Nettoyez ce dataset simulé étape par étape :\n1. Créez des problèmes : `df = orders.copy(); df.loc[[0,3], 'unit_price'] = None; df = pd.concat([df, df.head(2)])`\n2. Supprimez les doublons\n3. Remplissez les unit_price manquants par la médiane\n4. Créez une colonne line_revenue\n5. Réinitialisez l'index\nAssignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Nettoyez ce dataset simulé étape par étape :\n1. Joignez orders avec products, créez des problèmes : `df.loc[[0,3], 'unit_price'] = None; df = pd.concat([df, df.head(2)])`\n2. Supprimez les doublons\n3. Remplissez les unit_price manquants par la médiane\n4. Créez une colonne line_revenue\n5. Réinitialisez l'index\nAssignez à `result`.",
+    "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.copy()\ndf.loc[[0, 3], 'unit_price'] = None\ndf = pd.concat([df, df.head(2)])\n\n# Étapes de nettoyage\ndf = df.drop_duplicates()\ndf['unit_price'] = df['unit_price'].fillna(df['unit_price'].median())\ndf['line_revenue'] = df['quantity'] * df['unit_price']\ndf = df.reset_index(drop=True)\nresult = df",
+    "solution_code": "df = orders.merge(products[['id', 'unit_price']], left_on='product_id', right_on='id')\ndf.loc[[0, 3], 'unit_price'] = None\ndf = pd.concat([df, df.head(2)])\n\n# Étapes de nettoyage\ndf = df.drop_duplicates()\ndf['unit_price'] = df['unit_price'].fillna(df['unit_price'].median())\ndf['line_revenue'] = df['quantity'] * df['unit_price']\ndf = df.reset_index(drop=True)\nresult = df",
     "explanation": "Un nettoyage typique suit cet ordre : déduplication → valeurs manquantes → types → colonnes calculées. Toujours travailler sur une copie et documenter chaque étape.",
     "ordered": false
   },
@@ -367,8 +367,8 @@
     "description": "Créez un tableau croisé : lignes = catégorie de produit, colonnes = mois de la commande (1 à 12), valeurs = revenu total. Remplacez les vides par 0. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`, `products`",
     "starter_code": "",
-    "solution_code": "df = orders.merge(products[['id', 'category']], left_on='product_id', right_on='id')\ndf['month'] = pd.to_datetime(df['order_date']).dt.month\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.pivot_table(index='category', columns='month', values='line_revenue', aggfunc='sum', fill_value=0)\nresult.columns.name = None\nresult = result.reset_index()",
-    "explanation": "pivot_table() crée un tableau croisé dynamique. fill_value=0 remplace les NaN. aggfunc='sum' agrège les valeurs dupliquées.",
+    "solution_code": "df = orders.merge(products[['id', 'category', 'unit_price']], left_on='product_id', right_on='id')\ndf['month'] = pd.to_datetime(df['order_date']).dt.month\ndf['line_revenue'] = df['quantity'] * df['unit_price']\nresult = df.pivot_table(index='category', columns='month', values='line_revenue', aggfunc='sum', fill_value=0)\nresult.columns.name = None\nresult = result.reset_index()",
+    "explanation": "pivot_table() crée un tableau croisé dynamique. fill_value=0 remplace les NaN. aggfunc='sum' agrège les valeurs dupliquées. On joint orders avec products pour avoir category et unit_price.",
     "ordered": false
   },
   {
@@ -396,10 +396,10 @@
       "IQR",
       "quantile"
     ],
-    "description": "Détectez les outliers dans la colonne `unit_price` de orders en utilisant la méthode IQR (valeurs en dessous de Q1-1.5×IQR ou au-dessus de Q3+1.5×IQR). Retournez un DataFrame avec les lignes outliers. Assignez à `result`.",
-    "setup_note": "DataFrames disponibles : `orders`",
+    "description": "Détectez les outliers dans la colonne `unit_price` de products en utilisant la méthode IQR (valeurs en dessous de Q1-1.5×IQR ou au-dessus de Q3+1.5×IQR). Retournez un DataFrame avec les produits outliers. Assignez à `result`.",
+    "setup_note": "DataFrames disponibles : `products`",
     "starter_code": "",
-    "solution_code": "Q1 = orders['unit_price'].quantile(0.25)\nQ3 = orders['unit_price'].quantile(0.75)\nIQR = Q3 - Q1\nlower = Q1 - 1.5 * IQR\nupper = Q3 + 1.5 * IQR\nmask = (orders['unit_price'] < lower) | (orders['unit_price'] > upper)\nresult = orders[mask].reset_index(drop=True)\nprint(f'Outliers: {len(result)} sur {len(orders)} lignes')",
+    "solution_code": "Q1 = products['unit_price'].quantile(0.25)\nQ3 = products['unit_price'].quantile(0.75)\nIQR = Q3 - Q1\nlower = Q1 - 1.5 * IQR\nupper = Q3 + 1.5 * IQR\nmask = (products['unit_price'] < lower) | (products['unit_price'] > upper)\nresult = products[mask].reset_index(drop=True)\nprint(f'Outliers: {len(result)} sur {len(products)} produits')",
     "explanation": "La règle IQR est la méthode standard pour détecter les outliers. Q1-1.5×IQR et Q3+1.5×IQR définissent les bornes au-delà desquelles une valeur est considérée comme aberrante.",
     "ordered": false
   },
@@ -476,11 +476,11 @@
       "analyse",
       "rapport"
     ],
-    "description": "Réalisez un mini-rapport complet : (1) joignez orders, customers, products, (2) créez line_revenue, (3) filtrez les commandes 'delivered', (4) calculez le revenu total et le nombre de commandes par tier client, (5) ajoutez avg_order_value = total_revenue / order_count, (6) triez par total_revenue DESC. Assignez à `result`.",
+    "description": "Réalisez un mini-rapport complet : (1) joignez orders, customers, products, (2) créez line_revenue, (3) filtrez les commandes 'completed', (4) calculez le revenu total et le nombre de commandes par tier client, (5) ajoutez avg_order_value = total_revenue / order_count, (6) triez par total_revenue DESC. Assignez à `result`.",
     "setup_note": "DataFrames disponibles : `orders`, `customers`, `products`",
     "starter_code": "",
-    "solution_code": "result = (orders\n  .merge(customers[['id', 'name', 'tier']], left_on='customer_id', right_on='id')\n  .merge(products[['id', 'category']], left_on='product_id', right_on='id')\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .query(\"status == 'delivered'\")\n  .groupby('tier')\n  .agg(total_revenue=('line_revenue', 'sum'), order_count=('line_revenue', 'count'))\n  .round(2)\n  .reset_index()\n  .assign(avg_order_value=lambda df: (df['total_revenue'] / df['order_count']).round(2))\n  .sort_values('total_revenue', ascending=False)\n  .reset_index(drop=True))",
-    "explanation": "Ce pipeline enchaîne toutes les opérations fondamentales : merge, filtre, agrégation, calcul, tri. C'est le type de code qu'on écrit quotidiennement en entretien technique DA.",
+    "solution_code": "result = (orders\n  .merge(customers[['id', 'name', 'tier']], left_on='customer_id', right_on='id')\n  .merge(products[['id', 'category', 'unit_price']], left_on='product_id', right_on='id')\n  .assign(line_revenue=lambda df: df['quantity'] * df['unit_price'])\n  .query(\"status == 'completed'\")\n  .groupby('tier')\n  .agg(total_revenue=('line_revenue', 'sum'), order_count=('line_revenue', 'count'))\n  .round(2)\n  .reset_index()\n  .assign(avg_order_value=lambda df: (df['total_revenue'] / df['order_count']).round(2))\n  .sort_values('total_revenue', ascending=False)\n  .reset_index(drop=True))",
+    "explanation": "Ce pipeline enchaîne toutes les opérations fondamentales : merge, filtre, agrégation, calcul, tri. C'est le type de code qu'on écrit quotidiennement en entretien technique DA. Note : orders ne contient pas unit_price directement, il faut joindre avec products.",
     "ordered": true
   }
 ]
